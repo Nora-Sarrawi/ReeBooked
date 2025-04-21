@@ -7,19 +7,26 @@ class StartScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
+    // responsive numbers
+    final double logoW = size.width * 0.65; // 65 % of width
+    final double logoH = logoW * 1.12; // keep aspect
+    final double btnW = size.width * 0.45; // 45 % of width
+    final double titleF = (size.width * 0.10).clamp(32, 48);
+    final double tagF = (size.width * 0.04).clamp(12, 18);
+    final double btnF = (size.width * 0.07).clamp(20, 30);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFC76767), // ← colour the whole screen
+      backgroundColor: const Color(0xFFC76767),
       body: SafeArea(
-        // container no longer needs its own background colour
         child: Stack(
           children: [
-            // --- Logo oval ---
+            // Logo
             Positioned(
               top: size.height * 0.12,
-              left: (size.width - 362) / 2,
+              left: (size.width - logoW) / 2,
               child: Container(
-                width: 362,
-                height: 405,
+                width: logoW,
+                height: logoH,
                 decoration: const ShapeDecoration(
                   image: DecorationImage(
                     image: AssetImage('assets/images/logo.png'),
@@ -30,17 +37,17 @@ class StartScreen extends StatelessWidget {
               ),
             ),
 
-            // --- "ReBooked" title ---
+            // Title
             Positioned(
               top: size.height * 0.50,
               left: 0,
               right: 0,
-              child: const Center(
+              child: Center(
                 child: Text(
                   'ReBooked',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 48,
+                    fontSize: titleF,
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.w400,
                     height: 1,
@@ -50,17 +57,17 @@ class StartScreen extends StatelessWidget {
               ),
             ),
 
-            // --- Tagline ---
+            // Tagline
             Positioned(
               top: size.height * 0.57,
               left: 0,
               right: 0,
-              child: const Center(
+              child: Center(
                 child: Text(
                   'Where every book gets a second story',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 15,
+                    fontSize: tagF,
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.w400,
                   ),
@@ -69,25 +76,23 @@ class StartScreen extends StatelessWidget {
               ),
             ),
 
-            // --- Start button ---
+            // Button
             Positioned(
               top: size.height * 0.78,
-              left: (size.width - 195) / 2,
+              left: (size.width - btnW) / 2,
               child: SizedBox(
-                width: 195,
-                height: 51,
+                width: btnW,
+                height: kMinInteractiveDimension, // 48dp per Material spec
                 child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: Navigate to next screen
-                  },
+                  onPressed: () {},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF7C873),
                     elevation: 0,
                   ),
-                  child: const Text(
+                  child: Text(
                     'Start',
                     style: TextStyle(
-                      fontSize: 30,
+                      fontSize: btnF,
                       color: Colors.white,
                       fontWeight: FontWeight.w400,
                     ),
