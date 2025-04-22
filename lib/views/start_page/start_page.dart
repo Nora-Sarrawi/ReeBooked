@@ -78,7 +78,6 @@ class StartScreen extends StatelessWidget {
                 height: 51,
                 child: ElevatedButton(
                   onPressed: () {
-                    // TODO: Navigate to next screen
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF7C873),
