@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rebooked_app/views/start_page/start_page.dart';
+import 'package:rebooked_app/core/theme.dart';
 
 class ReBooked extends StatelessWidget {
   const ReBooked({super.key});
@@ -9,10 +10,7 @@ class ReBooked extends StatelessWidget {
     return MaterialApp(
       title: 'ReBooked',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorSchemeSeed: Colors.deepPurple,
-        useMaterial3: true,
-      ),
+      theme: appTheme,
       home: const StartScreen(),
     );
   }
