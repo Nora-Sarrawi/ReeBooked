@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../auth/signup_screen.dart';
 
 class StartScreen extends StatelessWidget {
   const StartScreen({super.key});
@@ -84,7 +85,13 @@ class StartScreen extends StatelessWidget {
                 width: btnW,
                 height: kMinInteractiveDimension, // 48dp per Material spec
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => CreateAccountScreen()),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF7C873),
                     elevation: 0,
