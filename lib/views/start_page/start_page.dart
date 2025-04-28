@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../auth/signup_screen.dart';
+import '../shell/shell_scaffold.dart';
 
 class StartScreen extends StatelessWidget {
   const StartScreen({super.key});
@@ -88,8 +88,7 @@ class StartScreen extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                          builder: (context) => CreateAccountScreen()),
+                      MaterialPageRoute(builder: (context) => ShellScaffold()),
                     );
                   },
                   style: ElevatedButton.styleFrom(
