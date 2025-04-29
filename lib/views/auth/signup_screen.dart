@@ -1,25 +1,5 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Create Account',
-      theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
-        fontFamily: 'Poppins',
-      ),
-      home: const CreateAccountScreen(),
-    );
-  }
-}
-
 class CreateAccountScreen extends StatefulWidget {
   const CreateAccountScreen({super.key});
 
@@ -66,7 +46,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 letterSpacing: 0.53,
               ),
             ),
-            const SizedBox(height: 30.0),
+            const SizedBox(height: 25.0),
             const Text(
               'Name',
               style: TextStyle(
@@ -78,7 +58,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 letterSpacing: 0.32,
               ),
             ),
-            const SizedBox(height: 8.0,),
+            const SizedBox(height: 4.0,),
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
@@ -91,12 +71,22 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   height: 1.5,
                   letterSpacing: 0.30,
                 ),
-                border: OutlineInputBorder(
+                enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25.0),
-                  borderSide: BorderSide.none,
+                  borderSide: const BorderSide(
+                    color: Color(0xFF562B56),
+                    width: 2.0,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(25.0),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF562B56),
+                    width: 2.0,
+                  ),
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Color(0xFFF2E9DC),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
               ),
             ),
@@ -112,9 +102,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 letterSpacing: 0.32,
               ),
             ),
-            const SizedBox(height: 8.0),
+            const SizedBox(height: 4.0),
             TextField(
-              controller: _emailController,
+              controller: _nameController,
               decoration: InputDecoration(
                 hintText: 'ex: jon.smith@email.com',
                 hintStyle: const TextStyle(
@@ -125,15 +115,26 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   height: 1.5,
                   letterSpacing: 0.30,
                 ),
-                border: OutlineInputBorder(
+                enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25.0),
-                  borderSide: BorderSide.none,
+                  borderSide: const BorderSide(
+                    color: Color(0xFF562B56),
+                    width: 2.0,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(25.0),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF562B56),
+                    width: 2.0,
+                  ),
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Color(0xFFF2E9DC),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
               ),
             ),
+
             const SizedBox(height: 20.0),
             const Text(
               'Password',
@@ -146,10 +147,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 letterSpacing: 0.32,
               ),
             ),
-            const SizedBox(height: 8.0),
+            const SizedBox(height: 4.0),
             TextField(
-              controller: _passwordController,
-              obscureText: true,
+              controller: _nameController,
               decoration: InputDecoration(
                 hintText: '*********',
                 hintStyle: const TextStyle(
@@ -160,15 +160,26 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   height: 1.5,
                   letterSpacing: 0.30,
                 ),
-                border: OutlineInputBorder(
+                enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25.0),
-                  borderSide: BorderSide.none,
+                  borderSide: const BorderSide(
+                    color: Color(0xFF562B56),
+                    width: 2.3,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(25.0),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF562B56),
+                    width: 2.0,
+                  ),
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Color(0xFFF2E9DC),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
               ),
             ),
+
             const SizedBox(height: 20.0),
             const Text(
               'Confirm password',
@@ -181,10 +192,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 letterSpacing: 0.32,
               ),
             ),
-            const SizedBox(height: 8.0),
+            const SizedBox(height: 4.0),
             TextField(
-              controller: _confirmPasswordController,
-              obscureText: true,
+              controller: _nameController,
               decoration: InputDecoration(
                 hintText: '*********',
                 hintStyle: const TextStyle(
@@ -195,16 +205,27 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   height: 1.5,
                   letterSpacing: 0.30,
                 ),
-                border: OutlineInputBorder(
+                enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(25.0),
-                  borderSide: BorderSide.none,
+                  borderSide: const BorderSide(
+                    color: Color(0xFF562B56),
+                    width: 2.0,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(25.0),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF562B56),
+                    width: 2.0,
+                  ),
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Color(0xFFF2E9DC),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
               ),
             ),
-            const SizedBox(height: 15.0),
+
+            const SizedBox(height: 5.0),
             Row(
               children: <Widget>[
                 Checkbox(
@@ -254,7 +275,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 30.0),
+            const SizedBox(height: 5.0),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -278,7 +299,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   }
                 } : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFC4567A),
+                  backgroundColor: const Color(0xFFC76767),
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25.0),
@@ -298,7 +319,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 25.0),
+            const SizedBox(height: 10.0),
             const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
@@ -331,7 +352,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 20.0),
+            const SizedBox(height: 10.0),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
