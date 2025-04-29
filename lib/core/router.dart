@@ -1,10 +1,12 @@
 // import 'package:flutter/material.dart';
 // import 'package:go_router/go_router.dart';
 
-// import '../views/home/home_screen.dart';
-// import '../views/auth/login_screen.dart';
-// import '../views/auth/signup_screen.dart';
-// import '../views/books/book_detail_screen.dart';
+
+// import '../views/home_page.dart';
+// import '../views/login_page.dart';
+// import '../views/signup_page.dart';
+// import '../views/book_details_page.dart';
+
 
 // final GoRouter appRouter = GoRouter(
 //   routes: [
@@ -21,7 +23,8 @@
 //     GoRoute(
 //       path: '/signup',
 //       name: 'signup',
-//       builder: (context, state) => const CreateAccountScreen(),
+
+//       builder: (context, state) => const SignupPage(),
 //     ),
 //     GoRoute(
 //       path: '/book/:id',

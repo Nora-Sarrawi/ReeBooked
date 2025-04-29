@@ -30,7 +30,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  go_router: ^13.2.0
+  go_router: ^13.2.0 # Use the latest version
+  dropdown_button2: ^2.3.9
+
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   flutter_riverpod: ^2.6.1  # Use the latest version
 
@@ -53,6 +57,12 @@ dev_dependencies:
 flutter:
   assets:
     - assets/images/
+    - assets/fonts/
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Italic-VariableFont_opsz,wght.ttf
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
