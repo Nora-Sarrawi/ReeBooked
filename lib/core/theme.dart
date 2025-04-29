@@ -8,6 +8,7 @@ class AppColors {
   static const Color beige = Color(0xFFF2E9DC);
   static const Color background = Color(0xFFFDF8FD);
   static const Color texe_field_background = Color.fromARGB(255, 251, 236, 251);
+  static const Color gray = Color(0xFFD1D1D6);
 }
 
 class AppTheme {

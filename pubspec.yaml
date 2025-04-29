@@ -60,7 +60,7 @@ flutter:
   fonts:
     - family: Inter
       fonts:
-        - asset: C:\Users\X\Desktop\ReeBooked\assets\fonts\Inter_18pt-Black.ttf
+        - asset: assets\fonts\Inter_18pt-Black.ttf
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
