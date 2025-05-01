@@ -23,7 +23,7 @@ class StartScreen extends StatelessWidget {
           children: [
             // Logo
             Positioned(
-              top: size.height * 0.12,
+              top: size.height * 0.20,
               left: (size.width - logoW) / 2,
               child: Container(
                 width: logoW,
@@ -49,7 +49,6 @@ class StartScreen extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: titleF,
-                    fontFamily: 'Inter',
                     fontWeight: FontWeight.w400,
                     height: 1,
                   ),
@@ -68,8 +67,7 @@ class StartScreen extends StatelessWidget {
                   'Where every book gets a second story',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: tagF,
-                    fontFamily: 'Inter',
+                    fontSize: 20,
                     fontWeight: FontWeight.w400,
                   ),
                   textAlign: TextAlign.center,
@@ -79,11 +77,11 @@ class StartScreen extends StatelessWidget {
 
             // Button
             Positioned(
-              top: size.height * 0.78,
+              top: size.height * 0.7,
               left: (size.width - btnW) / 2,
               child: SizedBox(
                 width: btnW,
-                height: kMinInteractiveDimension, // 48dp per Material spec
+                height: kMinInteractiveDimension,
                 child: ElevatedButton(
                   onPressed: () {
                     Navigator.push(

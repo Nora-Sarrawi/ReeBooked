@@ -52,8 +52,7 @@ class _ShellScaffoldState extends State<ShellScaffold> {
             splashColor: Colors.transparent,
           ),
           child: SizedBox(
-            // ← give it the height you want
-            height: 90, // 56 (default) → any value e.g. 64, 80
+            height: 90,
             child: BottomNavigationBar(
               type: BottomNavigationBarType.fixed,
               backgroundColor: Colors.white,
@@ -104,7 +103,7 @@ class _ShellScaffoldState extends State<ShellScaffold> {
                 backgroundColor: AppColors.primary,
                 onPressed: () => debugPrint('Add book'),
                 shape: const CircleBorder(), // forces circular shape
-                child: const Icon(Icons.add),
+                child: const Icon(Icons.add, color: Colors.white),
               )
             : null,
       ),
