@@ -18,7 +18,7 @@ class _ShellScaffoldState extends State<ShellScaffold> {
 
   final _tabs = [
     HomeScreen(),
-    RequestsScreen(),
+    RequestDetailsScreen(),
     MyBooksScreen(),
     NotificationsScreen(),
     ProfileScreen(),
