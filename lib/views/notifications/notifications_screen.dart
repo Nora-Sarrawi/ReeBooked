@@ -37,33 +37,28 @@ class NotificationsScreen extends StatelessWidget {
             ),
           ),
 
-          /*────────────  Tab row  (General ——— Read)  ────────────*/
+          /*── tabs (General • Read) ──*/
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(55),
             child: Row(
               children: [
                 Expanded(
                   child: TabBar(
-                    isScrollable: false, // full-width bar
+                    isScrollable: false,
                     labelPadding: EdgeInsets.zero,
                     labelStyle: txtStyleTab,
                     unselectedLabelStyle: txtStyleTab,
-                    indicator: UnderlineTabIndicator(
-                      borderSide:
-                          const BorderSide(width: 3, color: AppColors.accent),
-                      // make the purple line 24 px longer on both ends
-                      insets: const EdgeInsets.symmetric(horizontal: 16),
+                    indicator: const UnderlineTabIndicator(
+                      borderSide: BorderSide(width: 3, color: AppColors.accent),
+                      insets: EdgeInsets.symmetric(horizontal: 16),
                     ),
-                    indicatorColor: AppColors.primary,
                     tabs: const [
                       Align(
-                        alignment: Alignment.center,
-                        child: Tab(text: 'General'),
-                      ),
+                          alignment: Alignment.center,
+                          child: Tab(text: 'General')),
                       Align(
-                        alignment: Alignment.center,
-                        child: Tab(text: 'Read'),
-                      ),
+                          alignment: Alignment.center,
+                          child: Tab(text: 'Read')),
                     ],
                   ),
                 ),
@@ -72,7 +67,7 @@ class NotificationsScreen extends StatelessWidget {
           ),
         ),
 
-        /*────────────  Pages for each tab  ────────────*/
+        /*── tab pages ──*/
         body: const TabBarView(
           physics: BouncingScrollPhysics(),
           children: [
@@ -86,7 +81,7 @@ class NotificationsScreen extends StatelessWidget {
 }
 
 /*───────────────────────────────────────────────────────────────────────────*/
-/*  Dummy model & data                         */
+/*  Dummy model & list                                                      */
 /*───────────────────────────────────────────────────────────────────────────*/
 
 enum NotifTab { general, read }
@@ -94,9 +89,9 @@ enum NotifTab { general, read }
 class Notif {
   final String title;
   final String body;
-  final String avatar; // asset path or URL
-  final int badge; // red-dot number
-  final String time; // “1 m ago”
+  final String avatar;
+  final int badge;
+  final String time;
 
   const Notif({
     required this.title,
@@ -195,7 +190,7 @@ const _dummy = [
 ];
 
 /*───────────────────────────────────────────────────────────────────────────*/
-/*  ListView wrapper for each tab                                           */
+/*  List wrapper                                                            */
 /*───────────────────────────────────────────────────────────────────────────*/
 
 class _NotifList extends StatelessWidget {
@@ -205,37 +200,43 @@ class _NotifList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // In a real app you’d fetch the filtered list according to `tab`
-    final list = _dummy;
+    final list = _dummy; // later fetch from backend
 
     return ListView.separated(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
       itemCount: list.length,
       separatorBuilder: (_, __) => const SizedBox(height: 20),
-      itemBuilder: (context, i) => _NotifTile(data: list[i]),
+      itemBuilder: (context, i) => _NotifTile(
+        data: list[i],
+        showBadge: tab == NotifTab.general, // ★ NEW
+      ),
     );
   }
 }
 
 /*───────────────────────────────────────────────────────────────────────────*/
-/*  Single notification tile                                                */
+/*  Single tile                                                             */
 /*───────────────────────────────────────────────────────────────────────────*/
 
 class _NotifTile extends StatelessWidget {
-  const _NotifTile({required this.data});
+  const _NotifTile({
+    required this.data,
+    required this.showBadge, // ★ NEW
+  });
 
   final Notif data;
+  final bool showBadge; // ★ NEW
 
   @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _AvatarWithBadge(data: data),
+        _AvatarWithBadge(data: data, showBadge: showBadge),
         const SizedBox(width: 12),
 
-        /*── text block ──*/
+        /* text block */
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,7 +265,7 @@ class _NotifTile extends StatelessWidget {
           ),
         ),
 
-        /*── time stamp on the far right ──*/
+        /* time stamp */
         const SizedBox(width: 8),
         Text(
           data.time,
@@ -281,13 +282,17 @@ class _NotifTile extends StatelessWidget {
 }
 
 /*───────────────────────────────────────────────────────────────────────────*/
-/*  Avatar with numeric badge                                               */
+/*  Avatar + badge                                                          */
 /*───────────────────────────────────────────────────────────────────────────*/
 
 class _AvatarWithBadge extends StatelessWidget {
-  const _AvatarWithBadge({required this.data});
+  const _AvatarWithBadge({
+    required this.data,
+    required this.showBadge, // ★ NEW
+  });
 
   final Notif data;
+  final bool showBadge; // ★ NEW
 
   @override
   Widget build(BuildContext context) {
@@ -302,7 +307,7 @@ class _AvatarWithBadge extends StatelessWidget {
             backgroundImage: AssetImage(data.avatar),
           ),
         ),
-        if (data.badge > 0)
+        if (showBadge && data.badge > 0) // ★ NEW
           Positioned(
             right: -4,
             top: -4,
