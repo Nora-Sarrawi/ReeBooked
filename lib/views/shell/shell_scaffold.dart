@@ -53,8 +53,7 @@ class _ShellScaffoldState extends State<ShellScaffold> {
             splashColor: Colors.transparent,
           ),
           child: SizedBox(
-            // ← give it the height you want
-            height: 90, // 56 (default) → any value e.g. 64, 80
+            height: 90,
             child: BottomNavigationBar(
               type: BottomNavigationBarType.fixed,
               backgroundColor: Colors.white,
@@ -99,6 +98,7 @@ class _ShellScaffoldState extends State<ShellScaffold> {
             ),
           ),
         ),
+
 
             floatingActionButton: _index == 0
     ? FloatingActionButton(
