@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rebooked_app/core/theme.dart';
+import 'package:rebooked_app/views/auth/reset_password/reset_password_screen2.dart';
 import 'package:rebooked_app/widgets/primary_button.dart';
 
 class ResetPasswordScreen1 extends StatelessWidget {
@@ -28,7 +29,6 @@ class ResetPasswordScreen1 extends StatelessWidget {
                       icon: const Icon(Icons.arrow_back),
                       color: AppColors.secondary,
                       onPressed: () {
-                        Navigator.pop(context);
                       },
                     ),
                     SizedBox(width: screenWidth * 0.02),
@@ -60,6 +60,7 @@ class ResetPasswordScreen1 extends StatelessWidget {
                       ),
                       decoration: InputDecoration(
                         hintText: 'example@gmail.com',
+                        hintStyle: TextStyle(color: AppColors.secondary),
                         filled: true,
                         fillColor: theme.scaffoldBackgroundColor,
                         contentPadding: EdgeInsets.symmetric(
@@ -87,7 +88,13 @@ class ResetPasswordScreen1 extends StatelessWidget {
                       child: PrimaryButton(
                         text: 'Send Code',
                         color: AppColors.secondary,
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => ResetPasswordScreen2()),
+                          );
+                        },
+
                       ),
                     ),
                   ],
