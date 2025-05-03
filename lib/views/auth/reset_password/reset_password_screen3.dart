@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rebooked_app/core/theme.dart';
+import 'package:rebooked_app/views/auth/reset_password/reset_password_screen2.dart';
 import 'package:rebooked_app/widgets/primary_button.dart';
 
 class ResetPasswordScreen3 extends StatefulWidget {
@@ -12,8 +13,7 @@ class ResetPasswordScreen3 extends StatefulWidget {
 class _ResetPasswordScreen3State extends State<ResetPasswordScreen3> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   void _resetPassword() {
     if (_formKey.currentState?.validate() ?? false) {
@@ -32,7 +32,6 @@ class _ResetPasswordScreen3State extends State<ResetPasswordScreen3> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.pop(context); // Go back to login screen
               },
               child: const Text(
                 'OK',
@@ -77,7 +76,8 @@ class _ResetPasswordScreen3State extends State<ResetPasswordScreen3> {
                           icon: const Icon(Icons.arrow_back),
                           color: AppColors.secondary,
                           onPressed: () {
-                            Navigator.pop(context);
+                            Navigator.push(context,
+                              MaterialPageRoute(builder: (context) => ResetPasswordScreen2()),);
                           },
                         ),
                         SizedBox(width: screenWidth * 0.02),
@@ -99,7 +99,7 @@ class _ResetPasswordScreen3State extends State<ResetPasswordScreen3> {
                     theme: theme,
                     screenWidth: screenWidth,
                     screenHeight: screenHeight,
-                    isPassword: true,
+                    isConfirmPassword: false,
                   ),
                   SizedBox(height: screenHeight * 0.02),
                   _buildLabeledTextField(
@@ -108,7 +108,7 @@ class _ResetPasswordScreen3State extends State<ResetPasswordScreen3> {
                     theme: theme,
                     screenWidth: screenWidth,
                     screenHeight: screenHeight,
-                    isPassword: true,
+                    isConfirmPassword: true,
                   ),
                   SizedBox(height: screenHeight * 0.24),
                   Center(
@@ -133,7 +133,7 @@ class _ResetPasswordScreen3State extends State<ResetPasswordScreen3> {
     required ThemeData theme,
     required double screenWidth,
     required double screenHeight,
-    bool isPassword = false,
+    required bool isConfirmPassword,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,7 +148,7 @@ class _ResetPasswordScreen3State extends State<ResetPasswordScreen3> {
         SizedBox(height: screenHeight * 0.01),
         TextFormField(
           controller: controller,
-          obscureText: isPassword,
+          obscureText: true,
           cursorColor: AppColors.secondary,
           style: theme.textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.w300,
@@ -184,10 +184,10 @@ class _ResetPasswordScreen3State extends State<ResetPasswordScreen3> {
             if (value == null || value.isEmpty) {
               return 'Please fill this field';
             }
-            if (isPassword && value.length < 6) {
+            if (!isConfirmPassword && value.length < 6) {
               return 'Password must be at least 6 characters';
             }
-            if (!isPassword && value != _newPasswordController.text) {
+            if (isConfirmPassword && value != _newPasswordController.text) {
               return 'Passwords do not match';
             }
             return null;

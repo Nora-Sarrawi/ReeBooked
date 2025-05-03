@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../books/add_book_screen.dart';
 import '../home/home_screen.dart';
 import '../my_books/my_books_screen.dart';
 import '../requests/requests_screen.dart';
@@ -18,7 +19,7 @@ class _ShellScaffoldState extends State<ShellScaffold> {
 
   final _tabs = [
     HomeScreen(),
-    RequestsScreen(),
+    RequestDetailsScreen(),
     MyBooksScreen(),
     NotificationsScreen(),
     ProfileScreen(),
@@ -98,15 +99,22 @@ class _ShellScaffoldState extends State<ShellScaffold> {
           ),
         ),
 
-        floatingActionButton: _index == 0
-            ? FloatingActionButton(
-                backgroundColor: AppColors.primary,
-                onPressed: () => debugPrint('Add book'),
-                shape: const CircleBorder(), // forces circular shape
-                child: const Icon(Icons.add, color: Colors.white),
-              )
-            : null,
-      ),
+
+            floatingActionButton: _index == 0
+    ? FloatingActionButton(
+    backgroundColor: AppColors.primary,
+    onPressed: () {
+    Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const AddBookScreen()),
+    );
+    },
+    shape: const CircleBorder(),
+    child: const Icon(Icons.add),
+    )
+        : null,
+
+    ),
     );
   }
 }
