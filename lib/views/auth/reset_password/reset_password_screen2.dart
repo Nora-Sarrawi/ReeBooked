@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:rebooked_app/core/theme.dart';
-
+import 'package:rebooked_app/views/auth/reset_password/reset_Password_screen1.dart';
+import 'package:rebooked_app/views/auth/reset_password/reset_password_screen3.dart';
 import '../../../widgets/primary_button.dart';
 
 class ResetPasswordScreen2 extends StatelessWidget {
@@ -11,6 +13,8 @@ class ResetPasswordScreen2 extends StatelessWidget {
     final theme = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+
+    final List<TextEditingController> controllers = List.generate(4, (_) => TextEditingController());
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -53,9 +57,18 @@ class ResetPasswordScreen2 extends StatelessWidget {
                       return SizedBox(
                         width: screenWidth * 0.13,
                         child: TextField(
+                          controller: controllers[index],
                           textAlign: TextAlign.center,
-                          maxLength: 20,
+                          maxLength: 1,
                           keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          onChanged: (value) {
+                            if (value.isNotEmpty && index < 3) {
+                              FocusScope.of(context).nextFocus();
+                            } else if (value.isEmpty && index > 0) {
+                              FocusScope.of(context).previousFocus();
+                            }
+                          },
                           decoration: InputDecoration(
                             counterText: "",
                             enabledBorder: OutlineInputBorder(
@@ -107,7 +120,8 @@ class ResetPasswordScreen2 extends StatelessWidget {
                   PrimaryButton(
                     text: 'Confirm',
                     onPressed: () {
-                      Navigator.pushNamed(context, '/reset-password/step3');
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => ResetPasswordScreen3()),);
                     },
                     color: AppColors.secondary,
                     width: double.infinity,
@@ -127,7 +141,10 @@ class ResetPasswordScreen2 extends StatelessWidget {
                       color: AppColors.secondary,
                     ),
                     onPressed: () {
-                      Navigator.pushNamed(context, '/reset-password/step1');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ResetPasswordScreen1()),
+                      );
                     },
                   ),
                   SizedBox(width: screenWidth * 0.02),
