@@ -17,12 +17,12 @@ class RequestDetailsScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-          IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF562B56)),
-            iconSize:  32,
-          onPressed: () {
-          },
-        ),
+                  IconButton(
+                    icon:
+                        const Icon(Icons.arrow_back, color: Color(0xFF562B56)),
+                    iconSize: 32,
+                    onPressed: () {},
+                  ),
                   const Text(
                     'Request Details',
                     style: TextStyle(
@@ -33,7 +33,8 @@ class RequestDetailsScreen extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFEDB9C),
                       borderRadius: BorderRadius.circular(12),
@@ -56,8 +57,10 @@ class RequestDetailsScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _userInfo("assets/images/profilePic1.png", "Masa Jaara", "Things we never got over"),
-                  _userInfo("assets/images/profilePic2.png", "Nora Sarrawi", "This summer will be different"),
+                  _userInfo("assets/images/profilePic1.png", "Masa Jaara",
+                      "Things we never got over"),
+                  _userInfo("assets/images/profilePic2.png", "Nora Sarrawi",
+                      "This summer will be different"),
                 ],
               ),
               const SizedBox(height: 24),
@@ -74,9 +77,12 @@ class RequestDetailsScreen extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Notes
-              _noteCard("assets/images/profilePic1.png", "Masa Jaara", "Lorem ipsum dolor sit amet, consectetur adipiscing elit"),
-              _noteCard("assets/images/profilePic2.png", "Nora Sarrawi", "Lorem ipsum dolor sit amet, adipiscing elit"),
-              _noteCard("assets/images/profilePic1.png", "Masa Jaara", "Lorem ipsum dolor sit"),
+              _noteCard("assets/images/profilePic1.png", "Masa Jaara",
+                  "Lorem ipsum dolor sit amet, consectetur adipiscing elit"),
+              _noteCard("assets/images/profilePic2.png", "Nora Sarrawi",
+                  "Lorem ipsum dolor sit amet, adipiscing elit"),
+              _noteCard("assets/images/profilePic1.png", "Masa Jaara",
+                  "Lorem ipsum dolor sit"),
 
               const SizedBox(height: 50),
               // Add a note field
@@ -110,7 +116,8 @@ class RequestDetailsScreen extends StatelessWidget {
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF562B56),
-                        padding: const EdgeInsets.symmetric(vertical: 10), // Increased padding
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10), // Increased padding
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -132,7 +139,8 @@ class RequestDetailsScreen extends StatelessWidget {
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFD1B2FF),
-                        padding: const EdgeInsets.symmetric(vertical: 10), // Increased padding
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10), // Increased padding
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -180,7 +188,7 @@ class RequestDetailsScreen extends StatelessWidget {
               book,
               style: const TextStyle(
                 color: Color(0xFF562B56),
-                fontSize: 13,
+                fontSize: 12.2,
                 fontFamily: 'Inter',
                 fontWeight: FontWeight.w700,
               ),

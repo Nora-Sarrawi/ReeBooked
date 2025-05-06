@@ -6,6 +6,7 @@ import '../requests/requests_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../profile/profile_screen.dart';
 import '../../core/theme.dart';
+import '../swaps/swap_request_screen.dart';
 
 class ShellScaffold extends StatefulWidget {
   const ShellScaffold({super.key});
@@ -19,7 +20,7 @@ class _ShellScaffoldState extends State<ShellScaffold> {
 
   final _tabs = [
     HomeScreen(),
-    RequestDetailsScreen(),
+    SwapRequestsScreen(),
     MyBooksScreen(),
     NotificationsScreen(),
     ProfileScreen(),
@@ -99,22 +100,21 @@ class _ShellScaffoldState extends State<ShellScaffold> {
           ),
         ),
 
-
-            floatingActionButton: _index == 0
-    ? FloatingActionButton(
-    backgroundColor: AppColors.primary,
-    onPressed: () {
-    Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => const AddBookScreen()),
-    );
-    },
-    shape: const CircleBorder(),
-    child: const Icon(Icons.add),
-    )
-        : null,
-
-    ),
+        floatingActionButton: _index == 0
+            ? FloatingActionButton(
+                backgroundColor: AppColors.primary,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const AddBookScreen()),
+                  );
+                },
+                shape: const CircleBorder(),
+                child: const Icon(Icons.add),
+              )
+            : null,
+      ),
     );
   }
 }

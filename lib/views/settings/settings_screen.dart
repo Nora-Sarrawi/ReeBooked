@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../profile/profile_screen.dart';
 class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -19,7 +19,10 @@ class SettingsPage extends StatelessWidget {
                   IconButton(
                     icon: Icon(Icons.arrow_back, color: Color(0xFF562B56)),
                     iconSize: 32,
-                    onPressed: () {},
+                    onPressed: () {Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ProfileScreen()),
+    );},
                   ),
                   SizedBox(width: 8),
                   Text(
