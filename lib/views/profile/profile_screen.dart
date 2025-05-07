@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:rebooked_app/core/theme.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -26,7 +27,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           IconButton(
             icon: Icon(Icons.settings, color: AppColors.secondary),
-            onPressed: () {},
+            onPressed: () { context.push('/settings');},
           ),
         ],
       ),

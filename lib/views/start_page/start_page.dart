@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../shell/shell_scaffold.dart';
 
 class StartScreen extends StatelessWidget {
@@ -84,10 +85,8 @@ class StartScreen extends StatelessWidget {
                 height: kMinInteractiveDimension,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ShellScaffold()),
-                    );
+                        context.go('/home'); // or whatever route you want to start with
+
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF7C873),

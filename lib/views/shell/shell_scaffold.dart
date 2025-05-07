@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:rebooked_app/views/swaps/swap_request_screen.dart';
 import '../books/add_book_screen.dart';
 import '../home/home_screen.dart';
 import '../my_books/my_books_screen.dart';
@@ -8,7 +10,7 @@ import '../profile/profile_screen.dart';
 import '../../core/theme.dart';
 
 class ShellScaffold extends StatefulWidget {
-  const ShellScaffold({super.key});
+  const ShellScaffold({super.key, required Widget child});
   @override
   State<ShellScaffold> createState() => _ShellScaffoldState();
 }
@@ -19,10 +21,11 @@ class _ShellScaffoldState extends State<ShellScaffold> {
 
   final _tabs = [
     HomeScreen(),
-    RequestDetailsScreen(),
+    SwapRequestsScreen(),
     MyBooksScreen(),
     NotificationsScreen(),
     ProfileScreen(),
+   
   ];
 
   @override
@@ -99,22 +102,15 @@ class _ShellScaffoldState extends State<ShellScaffold> {
           ),
         ),
 
-
-            floatingActionButton: _index == 0
-    ? FloatingActionButton(
-    backgroundColor: AppColors.primary,
-    onPressed: () {
-    Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => const AddBookScreen()),
-    );
-    },
-    shape: const CircleBorder(),
-    child: const Icon(Icons.add),
-    )
-        : null,
-
-    ),
+        floatingActionButton: _index == 0
+            ? FloatingActionButton(
+                backgroundColor: AppColors.primary,
+                onPressed: () {context.go('/add-book');},
+                shape: const CircleBorder(),
+                child: const Icon(Icons.add),
+              )
+            : null,
+      ),
     );
   }
 }
