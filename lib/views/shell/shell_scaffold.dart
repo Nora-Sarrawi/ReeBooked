@@ -25,7 +25,6 @@ class _ShellScaffoldState extends State<ShellScaffold> {
     MyBooksScreen(),
     NotificationsScreen(),
     ProfileScreen(),
-   
   ];
 
   @override
@@ -105,9 +104,11 @@ class _ShellScaffoldState extends State<ShellScaffold> {
         floatingActionButton: _index == 0
             ? FloatingActionButton(
                 backgroundColor: AppColors.primary,
-                onPressed: () {context.go('/add-book');},
+                onPressed: () {
+                  context.go('/add-book');
+                },
                 shape: const CircleBorder(),
-                child: const Icon(Icons.add),
+                child: const Icon(Icons.add, color: Colors.white),
               )
             : null,
       ),
