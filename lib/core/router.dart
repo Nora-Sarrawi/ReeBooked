@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:rebooked_app/providers/swap_provider.dart';
 import 'package:rebooked_app/views/books/add_book_screen.dart';
 import 'package:rebooked_app/views/home/home_screen.dart';
 import 'package:rebooked_app/views/settings/settings_screen.dart';
@@ -64,7 +65,7 @@ final GoRouter router = GoRouter(
      GoRoute(path: '/start', builder: (_, __) => const StartScreen()),
          GoRoute(path: '/settings', builder: (_, __) => SettingsPage()),
          GoRoute(path: '/add-book', builder: (_, __) => AddBookScreen()),
-          
+          GoRoute(path: '/confirm', builder: (_, __) => ConfirmSwapPage()),
                   
 
          
