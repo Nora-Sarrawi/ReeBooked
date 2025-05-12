@@ -77,12 +77,21 @@ class RequestDetailsScreen extends StatelessWidget {
               const SizedBox(height: 16),
 
               // Notes
-              _noteCard("assets/images/profilePic1.png", "Masa Jaara",
-                  "Lorem ipsum dolor sit amet, consectetur adipiscing elit"),
-              _noteCard("assets/images/profilePic2.png", "Nora Sarrawi",
-                  "Lorem ipsum dolor sit amet, adipiscing elit"),
-              _noteCard("assets/images/profilePic1.png", "Masa Jaara",
-                  "Lorem ipsum dolor sit"),
+              // Scrollable Notes
+              SizedBox(
+                height: 275, // Set appropriate height depending on your layout
+                child: ListView(
+                  children: [
+                    _noteCard("assets/images/profilePic1.png", "Masa Jaara",
+                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit"),
+                    _noteCard("assets/images/profilePic2.png", "Nora Sarrawi",
+                        "Lorem ipsum dolor sit amet, adipiscing elit"),
+                    _noteCard("assets/images/profilePic1.png", "Masa Jaara",
+                        "Lorem ipsum dolor sit"),
+                    // Add more _noteCard(...) here as needed
+                  ],
+                ),
+              ),
 
               const SizedBox(height: 50),
               // Add a note field

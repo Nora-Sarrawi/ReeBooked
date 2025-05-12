@@ -57,10 +57,15 @@ class IncomingTabContent extends StatelessWidget {
     return ListView(
       padding: EdgeInsets.all(16),
       children: [
-        IncomingRequest(name: 'Masa Jaara', imagePath: 'assets/images/profilePic2.png'),
-        IncomingRequest(name: 'Nora Sarrawi', imagePath: 'assets/images/profilePic1.png'),
-        IncomingRequest(name: 'Alaa Qaqa', imagePath: 'assets/images/profilePic3.png'),
-        IncomingRequest(name: 'Kareem Abukharma', imagePath: 'assets/images/profilePic4.png'),
+        IncomingRequest(
+            name: 'Masa Jaara', imagePath: 'assets/images/profilePic2.png'),
+        IncomingRequest(
+            name: 'Nora Sarrawi', imagePath: 'assets/images/profilePic1.png'),
+        IncomingRequest(
+            name: 'Alaa Qaqa', imagePath: 'assets/images/profilePic3.png'),
+        IncomingRequest(
+            name: 'Kareem Abukharma',
+            imagePath: 'assets/images/profilePic4.png'),
       ],
     );
   }
@@ -136,22 +141,26 @@ class OutgoingTabContent extends StatelessWidget {
       children: [
         OutgoingItem(
           title: 'SALE IS LIVE',
-          subtitle: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet, consectetur adipiscing elit.',
+          subtitle:
+              'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet, consectetur adipiscing elit.',
           imagePath: 'assets/images/profile1.png',
         ),
         OutgoingItem(
           title: 'SALE IS LIVE',
-          subtitle: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet, consectetur adipiscing elit.',
+          subtitle:
+              'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet, consectetur adipiscing elit.',
           imagePath: 'assets/images/profile4.png',
         ),
         OutgoingItem(
           title: 'SALE IS LIVE',
-          subtitle: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet, consectetur adipiscing elit.',
+          subtitle:
+              'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet, consectetur adipiscing elit.',
           imagePath: 'assets/images/profile2.png',
         ),
         OutgoingItem(
           title: 'SALE IS LIVE',
-          subtitle: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet, consectetur adipiscing elit.',
+          subtitle:
+              'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet, consectetur adipiscing elit.',
           imagePath: 'assets/images/profile3.png',
         ),
       ],
@@ -193,7 +202,6 @@ class OutgoingItem extends StatelessWidget {
                     subtitle,
                     style: TextStyle(color: Color(0xFF562B56)),
                   ),
-
                   SizedBox(height: 4),
                 ],
               ),
@@ -212,10 +220,15 @@ class ArchivedTabContent extends StatelessWidget {
     return ListView(
       padding: EdgeInsets.all(16),
       children: [
-        ArchivedItem(name: 'Masa Jaara', imagePath: 'assets/images/profilePic2.png'),
-        ArchivedItem(name: 'Nora Sarrawi', imagePath: 'assets/images/profilePic1.png'),
-        ArchivedItem(name: 'Alaa Qaqa', imagePath: 'assets/images/profilePic3.png'),
-        ArchivedItem(name: 'Kareem Abukharma', imagePath: 'assets/images/profilePic4.png'),
+        ArchivedItem(
+            name: 'Masa Jaara', imagePath: 'assets/images/profilePic2.png'),
+        ArchivedItem(
+            name: 'Nora Sarrawi', imagePath: 'assets/images/profilePic1.png'),
+        ArchivedItem(
+            name: 'Alaa Qaqa', imagePath: 'assets/images/profilePic3.png'),
+        ArchivedItem(
+            name: 'Kareem Abukharma',
+            imagePath: 'assets/images/profilePic4.png'),
       ],
     );
   }

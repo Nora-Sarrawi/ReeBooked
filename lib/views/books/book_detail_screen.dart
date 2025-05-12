@@ -18,8 +18,11 @@ class BookDetailsScreen extends StatelessWidget {
               Row(
                 children: [
                   TextButton.icon(
-                    onPressed: () {context.go('/my-books');},
-                    icon: const Icon(Icons.arrow_back, color: Color(0xFF562B56)),
+                    onPressed: () {
+                      context.go('/my-books');
+                    },
+                    icon:
+                        const Icon(Icons.arrow_back, color: Color(0xFF562B56)),
                     label: const Text(
                       'Book Details',
                       style: TextStyle(
@@ -37,7 +40,7 @@ class BookDetailsScreen extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: Image.asset(
-                    'assets/images/bookCover3.png',
+                    'assets/images/bookCover8.png',
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -148,7 +151,8 @@ class BookDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF7C873),
                       borderRadius: BorderRadius.circular(20),
@@ -192,9 +196,12 @@ class BookDetailsScreen extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(25),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 40, vertical: 12),
                   ),
-                  onPressed: () {context.go( '/confirm');},
+                  onPressed: () {
+                    context.go('/confirm');
+                  },
                   child: const Text(
                     'Send Swap Request',
                     textAlign: TextAlign.center,
@@ -222,11 +229,13 @@ class BookDetailsScreen extends StatelessWidget {
       data: ThemeData().copyWith(dividerColor: Colors.transparent),
       child: ExpansionTile(
         tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        childrenPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        childrenPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         collapsedBackgroundColor: const Color(0xFFF2E9DC),
         backgroundColor: const Color(0xFFF2E9DC),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-        collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+        collapsedShape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
         leading: const Icon(Icons.description, color: Color(0xFF562B56)),
         title: Text(
           title,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/theme.dart'; // AppColors, appTheme
 import '../../core/constants.dart'; // AppPadding
@@ -162,6 +163,7 @@ class _BookCard extends StatelessWidget {
     this.widthFactor = 1.0,
     this.cardHeight = 120,
     this.contentPadding = 16,
+    this.onPressed,
     super.key,
   });
 
@@ -169,24 +171,28 @@ class _BookCard extends StatelessWidget {
   final double widthFactor;
   final double cardHeight;
   final double contentPadding;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.beige,
-        borderRadius: BorderRadius.circular(16),
+    return TextButton(
+      style: TextButton.styleFrom(
+        padding: EdgeInsets.zero,
+        backgroundColor: AppColors.beige,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Align(
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 30),
+      onPressed: onPressed ?? () {context.go('/bookDetails');},
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 22),
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16), bottom: Radius.circular(16)),
+                borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
                   coverPath,
                   height: 120,
@@ -195,29 +201,25 @@ class _BookCard extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 18),
-          Column(
-            children: [
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                author,
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium!
-                    .copyWith(fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-        ],
+            const SizedBox(height: 18),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              author,
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium!
+                  .copyWith(fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
       ),
     );
   }
