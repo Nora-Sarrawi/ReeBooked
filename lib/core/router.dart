@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rebooked_app/providers/swap_provider.dart';
 import 'package:rebooked_app/views/books/add_book_screen.dart';
+import 'package:rebooked_app/views/books/book_detail_screen.dart';
 import 'package:rebooked_app/views/home/home_screen.dart';
 import 'package:rebooked_app/views/settings/settings_screen.dart';
 import 'package:rebooked_app/views/start_page/start_page.dart';
@@ -10,7 +11,6 @@ import 'package:rebooked_app/views/my_books/my_books_screen.dart';
 import 'package:rebooked_app/views/notifications/notifications_screen.dart';
 import 'package:rebooked_app/views/profile/profile_screen.dart';
 import 'package:rebooked_app/views/shell/shell_scaffold.dart';
-
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -51,12 +51,13 @@ final GoRouter router = GoRouter(
           path: '/profile',
           pageBuilder: (context, state) =>
               NoTransitionPage(child: ProfileScreen()),
-              routes: [
-        GoRoute(
-          path: 'settings', // NOTE: this makes full path = /profile/settings
-          builder: (context, state) => SettingsPage(),
-        ),
-      ],
+          routes: [
+            GoRoute(
+              path:
+                  'settings', // NOTE: this makes full path = /profile/settings
+              builder: (context, state) => SettingsPage(),
+            ),
+          ],
         ),
       ],
     ),
@@ -69,6 +70,7 @@ final GoRouter router = GoRouter(
                   
 
          
+
 
   ],
 );
