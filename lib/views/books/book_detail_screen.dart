@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class BookDetailsScreen extends StatelessWidget {
   const BookDetailsScreen({super.key});
@@ -17,7 +18,7 @@ class BookDetailsScreen extends StatelessWidget {
               Row(
                 children: [
                   TextButton.icon(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {context.go('/my-books');},
                     icon: const Icon(Icons.arrow_back, color: Color(0xFF562B56)),
                     label: const Text(
                       'Book Details',
@@ -193,7 +194,7 @@ class BookDetailsScreen extends StatelessWidget {
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                   ),
-                  onPressed: () {},
+                  onPressed: () {context.go( '/confirm');},
                   child: const Text(
                     'Send Swap Request',
                     textAlign: TextAlign.center,
