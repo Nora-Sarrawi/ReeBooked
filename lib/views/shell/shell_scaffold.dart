@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:rebooked_app/views/swaps/swap_request_screen.dart';
 import '../books/add_book_screen.dart';
 import '../home/home_screen.dart';
 import '../my_books/my_books_screen.dart';
@@ -9,7 +11,7 @@ import '../../core/theme.dart';
 import '../swaps/swap_request_screen.dart';
 
 class ShellScaffold extends StatefulWidget {
-  const ShellScaffold({super.key});
+  const ShellScaffold({super.key, required Widget child});
   @override
   State<ShellScaffold> createState() => _ShellScaffoldState();
 }
@@ -104,14 +106,11 @@ class _ShellScaffoldState extends State<ShellScaffold> {
             ? FloatingActionButton(
                 backgroundColor: AppColors.primary,
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const AddBookScreen()),
-                  );
+
+                  context.go('/add-book');
                 },
                 shape: const CircleBorder(),
-                child: const Icon(Icons.add),
+                child: const Icon(Icons.add, color: Colors.white),
               )
             : null,
       ),

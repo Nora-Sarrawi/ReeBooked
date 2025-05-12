@@ -1,4 +1,4 @@
-import 'package:rebooked_app/widgets/book_card.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 
@@ -346,93 +346,95 @@ class _BookCard extends StatelessWidget {
       child: SizedBox(
         width: cardW,
         height: cardH,
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.beige,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center, // centre text column
-            children: [
-              // -------- Cover (centred) ---------------------------------------
-              Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(16), bottom: Radius.circular(16)),
-                    child: Image.asset(
-                      coverPath,
-                      height: 160,
-                      width: 150, // thumbnail width
-                      fit: BoxFit.cover,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () {
+            context.go('/book-details');
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.beige,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // -------- Cover (centred) ---------------------------------------
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(16),
+                        bottom: Radius.circular(16),
+                      ),
+                      child: Image.asset(
+                        coverPath,
+                        height: 160,
+                        width: 150,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-              // -------- Title & author (centred text) -------------------------
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Column(
-                  children: [
-                    Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      author,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium!
-                          .copyWith(fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-
-              // -------- Owner row (left-aligned) ------------------------------
-              Padding(
-                padding: EdgeInsets.only(
-                    left: contentPadding, right: 12, bottom: 16),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 15,
-                      backgroundImage: ownerAvatar == null
-                          ? const AssetImage(
-                              'assets/images/book1.jpg',
-                            ) as ImageProvider // default
-                          : (ownerAvatar!.startsWith(
-                              'http',
-                            )
-                              ? NetworkImage(
-                                  ownerAvatar!,
-                                ) // Cloud Storage / URL
-                              : AssetImage(
-                                  ownerAvatar!,
-                                )), // local asset
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        ownerName,
+                // -------- Title & author (centred text) -------------------------
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Column(
+                    children: [
+                      Text(
+                        title,
+                        textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        author,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium!
+                            .copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+                const Spacer(),
+
+                // -------- Owner row (left-aligned) ------------------------------
+                Padding(
+                  padding: EdgeInsets.only(
+                      left: contentPadding, right: 12, bottom: 16),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 15,
+                        backgroundImage: ownerAvatar == null
+                            ? const AssetImage(
+                                'assets/images/book1.jpg',
+                              ) as ImageProvider
+                            : (ownerAvatar!.startsWith('http')
+                                ? NetworkImage(ownerAvatar!)
+                                : AssetImage(ownerAvatar!)),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          ownerName,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
