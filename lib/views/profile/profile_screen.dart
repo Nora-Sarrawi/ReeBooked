@@ -2,12 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rebooked_app/core/theme.dart';
 
+import '../../core/custom_text_field.dart';
+
 class ProfileScreen extends StatefulWidget {
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  TextEditingController _nameController = TextEditingController(text: 'Masa Jaara');
+  TextEditingController _locationController = TextEditingController(text: 'Palestine, Nablus');
+  TextEditingController _emailController = TextEditingController(text: 'wewewewewe@gmail.com');
+  TextEditingController _bioController = TextEditingController(text: 'wewewwewewew 😊,\nwewewwewewewwweweeeeeeeeeeeewwwwwww🌱.');
+
+  bool _isEditingName = false;
+  bool _isEditingLocation = false;
+  bool _isEditingEmail = false;
+  bool _isEditingBio = false;
+  bool _isEditingImage = false; // Flag to toggle image edit mode
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +43,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -49,13 +60,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   child: ClipOval(
-                    child: Image.asset(
+                    child: _isEditingImage
+                        ? GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _isEditingImage = !_isEditingImage; // toggle between edit and view mode
+                        });
+                      },
+                      child: Icon(
+                        Icons.camera_alt,
+                        size: 40,
+                        color: AppColors.secondary,
+                      ),
+                    )
+                        : Image.asset(
                       'assets/images/profile.png',
                       width: 120,
                       height: 120,
                       fit: BoxFit.cover,
                     ),
-
                   ),
                 ),
                 Positioned(
@@ -64,18 +87,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: CircleAvatar(
                     radius: 16,
                     backgroundColor: AppColors.secondary,
-                    child: Icon(Icons.edit, size: 16, color: AppColors.accent),
+                    child: IconButton(
+                      icon: Icon(Icons.edit, size: 16, color: AppColors.accent),
+                      onPressed: () {
+                        setState(() {
+                          _isEditingImage = !_isEditingImage; // toggle between edit and view mode
+                        });
+                      },
+                    ),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 30),
             sectionTitle('Personal info'),
-            infoCard('Full Name', 'Masa Jaara'),
-            infoCard('Location', 'Palestine, Nablus'),
-            infoCard('Email Address', 'wewewewewe@gmail.com'),
+            _buildEditableCard('Full Name', _nameController, _isEditingName, () {
+              setState(() {
+                _isEditingName = !_isEditingName;
+              });
+            }),
+            _buildEditableCard('Location', _locationController, _isEditingLocation, () {
+              setState(() {
+                _isEditingLocation = !_isEditingLocation;
+              });
+            }),
+            _buildEditableCard('Email Address', _emailController, _isEditingEmail, () {
+              setState(() {
+                _isEditingEmail = !_isEditingEmail;
+              });
+            }),
             sectionTitle('About you'),
-            bioCard('wewewwewewew 😊,\nwewewwewewewwweweeeeeeeeeeeewwwwwww🌱.'),
+            _buildEditableBioCard(_bioController, _isEditingBio, () {
+              setState(() {
+                _isEditingBio = !_isEditingBio;
+              });
+            }),
             const SizedBox(height: 30),
           ],
         ),
@@ -100,7 +146,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget infoCard(String label, String value) {
+  // Editable info card
+  Widget _buildEditableCard(String label, TextEditingController controller, bool isEditing, Function() toggleEditing) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
       child: Card(
@@ -118,19 +165,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: AppColors.secondary,
             ),
           ),
-          subtitle: Text(
-            value,
-            style: TextStyle(
-              color: AppColors.secondary,
-            ),
+          subtitle: isEditing
+              ? CustomTextField(controller: controller)
+              : Text(
+            controller.text,
+            style: TextStyle(color: AppColors.secondary),
           ),
-          trailing: Icon(Icons.edit, color: AppColors.secondary),
+          trailing: IconButton(
+            icon: Icon(Icons.edit, color: AppColors.secondary),
+            onPressed: toggleEditing,
+          ),
         ),
       ),
     );
   }
 
-  Widget bioCard(String bio) {
+  // Editable bio card
+  Widget _buildEditableBioCard(TextEditingController controller, bool isEditing, Function() toggleEditing) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
       child: Card(
@@ -148,16 +199,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: AppColors.secondary,
             ),
           ),
-          subtitle: Padding(
-            padding: const EdgeInsets.only(top: 4.0),
-            child: Text(
-              bio,
-              style: TextStyle(
-                color: AppColors.secondary,
-              ),
-            ),
+          subtitle: isEditing
+              ? CustomTextField(controller: controller)
+              : Text(
+            controller.text,
+            style: TextStyle(color: AppColors.secondary),
           ),
-          trailing: Icon(Icons.edit, color: AppColors.secondary),
+          trailing: IconButton(
+            icon: Icon(Icons.edit, color: AppColors.secondary),
+            onPressed: toggleEditing,
+          ),
         ),
       ),
     );
