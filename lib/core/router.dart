@@ -75,6 +75,7 @@ final GoRouter router = GoRouter(
     GoRoute(  path: '/forgot-password', builder: (_, __) => ResetPasswordScreen1()),
     GoRoute(path: '/Login', builder: (_, __) => LoginPage()),
     GoRoute(path: '/Signup', builder: (_, __) => CreateAccountScreen()),
-    
+    GoRoute(path: '/swap-request', builder: (_, __) => SwapRequestsScreen()),
+
   ],
 );
