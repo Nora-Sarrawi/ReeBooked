@@ -71,10 +71,10 @@ final GoRouter router = GoRouter(
     GoRoute(path: '/add-book', builder: (_, __) => AddBookScreen()),
     GoRoute(path: '/confirm', builder: (_, __) => ConfirmSwapPage()),
     GoRoute(path: '/bookDetails', builder: (_, __) => BookDetailsScreen()),
-    GoRoute(
-        path: '/forgot-password', builder: (_, __) => ResetPasswordScreen1()),
+    GoRoute(  path: '/forgot-password', builder: (_, __) => ResetPasswordScreen1()),
     GoRoute(path: '/Login', builder: (_, __) => LoginPage()),
     GoRoute(path: '/Signup', builder: (_, __) => CreateAccountScreen()),
-    
+    GoRoute(path: '/swap-request', builder: (_, __) => SwapRequestsScreen()),
+
   ],
 );
