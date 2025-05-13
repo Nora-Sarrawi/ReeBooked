@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:rebooked_app/providers/swap_provider.dart';
+import 'package:rebooked_app/views/auth/login_screen.dart';
+import 'package:rebooked_app/views/auth/reset_password/reset_password_screen1.dart';
+import 'package:rebooked_app/views/auth/signup_screen.dart';
 import 'package:rebooked_app/views/books/add_book_screen.dart';
 import 'package:rebooked_app/views/books/book_detail_screen.dart';
 import 'package:rebooked_app/views/home/home_screen.dart';
+import 'package:rebooked_app/views/requests/requests_screen.dart';
 import 'package:rebooked_app/views/settings/settings_screen.dart';
 import 'package:rebooked_app/views/start_page/start_page.dart';
 import 'package:rebooked_app/views/swaps/swap_request_screen.dart';
@@ -65,6 +70,12 @@ final GoRouter router = GoRouter(
     GoRoute(path: '/start', builder: (_, __) => const StartScreen()),
     GoRoute(path: '/settings', builder: (_, __) => SettingsPage()),
     GoRoute(path: '/add-book', builder: (_, __) => AddBookScreen()),
-    GoRoute(path: '/book-details', builder: (_, __) => BookDetailsScreen()),
+    GoRoute(path: '/confirm', builder: (_, __) => ConfirmSwapPage()),
+    GoRoute(path: '/bookDetails', builder: (_, __) => BookDetailsScreen()),
+    GoRoute(  path: '/forgot-password', builder: (_, __) => ResetPasswordScreen1()),
+    GoRoute(path: '/Login', builder: (_, __) => LoginPage()),
+    GoRoute(path: '/Signup', builder: (_, __) => CreateAccountScreen()),
+    GoRoute(path: '/swap-request', builder: (_, __) => SwapRequestsScreen()),
+
   ],
 );

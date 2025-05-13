@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 
-
-
-
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -46,7 +43,6 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
           child: Stack(
-
             children: [
               // Logo/Image
               // Logo using local asset
@@ -59,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     image: DecorationImage(
-                      image: AssetImage('assets/logo.png'),
+                      image: AssetImage('assets/images/applogo.png'),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -183,7 +179,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: ElevatedButton(
                     onPressed: _login,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF562B56),
+                      backgroundColor: const Color(0xFFC76767),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(25),
                       ),
@@ -252,7 +248,8 @@ class _LoginPageState extends State<LoginPage> {
                             fontFamily: 'Poppins',
                             fontWeight: FontWeight.w700,
                           ),
-                          recognizer: null, // Add TapGestureRecognizer if needed
+                          recognizer:
+                              null, // Add TapGestureRecognizer if needed
                         ),
                       ],
                     ),

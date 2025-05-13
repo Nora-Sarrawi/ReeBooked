@@ -22,8 +22,9 @@ class SettingsPage extends StatelessWidget {
                   IconButton(
                     icon: Icon(Icons.arrow_back, color: Color(0xFF562B56)),
                     iconSize: 32,
-
-                    onPressed: () {context.go('/profile');},
+                    onPressed: () {
+                      context.go('/profile');
+                    },
                   ),
                   SizedBox(width: 8),
                   Text(
@@ -96,11 +97,17 @@ class SettingsPage extends StatelessWidget {
             onTap: () {
               if (title == 'Delete Account') {
                 _showDeleteConfirmation(context);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('$title tapped')),
-                );
               }
+              if (title == 'Delete Account') {
+                _showDeleteConfirmation(context);
+              } else if (title == 'Forgot Password') {
+                context
+                    .go('/forgot-password'); // Change this to your actual route
+              } else if (title == 'Logout') {
+                context.go('/Login'); // Change this to your actual route
+              }
+              
+              
             },
           ),
           Container(
@@ -177,7 +184,7 @@ class SettingsPage extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text("Account deleted")),
                           );
-                          // Add deletion logic here
+                          context.go('/Signup');
                         },
                         child: Container(
                           height: 48,

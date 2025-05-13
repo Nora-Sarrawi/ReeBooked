@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 void main() {
   runApp(MaterialApp(home: SwapRequestsScreen()));
@@ -10,6 +11,7 @@ class SwapRequestsScreen extends StatelessWidget {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
@@ -75,51 +77,62 @@ class IncomingRequest extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Row(
-          children: [
-            CircleAvatar(radius: 24, backgroundImage: AssetImage(imagePath)),
-            SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF562B56),
+        InkWell(
+          onTap: () {
+            context.go('/Request-details');
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(radius: 24, backgroundImage: AssetImage(imagePath)),
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF562B56),
+                      ),
                     ),
-                  ),
-                  Text(
-                    'Request to exchange your book "Things we never got over" with "This summer will be different."',
-                    style: TextStyle(color: Color(0xFF562B56)),
-                  ),
-                  SizedBox(height: 8),
-                  Row(
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {},
-                        child: Text('Accept'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFFCDA2F2),
-                          foregroundColor: Colors.white,
+                    Text(
+                      'Request to exchange your book "Things we never got over" with "This summer will be different."',
+                      style: TextStyle(color: Color(0xFF562B56)),
+                    ),
+                    SizedBox(height: 8),
+                    Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            print("Accepted request from $name");
+                          },
+                          child: Text('Accept'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFFCDA2F2),
+                            foregroundColor: Colors.white,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: () {},
-                        child: Text('Decline'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFFCDA2F2),
-                          foregroundColor: Colors.white,
+                        SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: () {
+                            print("Declined request from $name");
+                          },
+                          child: Text('Decline'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFFCDA2F2),
+                            foregroundColor: Colors.white,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         Divider(height: 32),
       ],
@@ -192,7 +205,6 @@ class OutgoingItem extends StatelessWidget {
                     subtitle,
                     style: TextStyle(color: Color(0xFF562B56)),
                   ),
-
                   SizedBox(height: 4),
                 ],
               ),

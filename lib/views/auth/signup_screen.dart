@@ -58,7 +58,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 letterSpacing: 0.32,
               ),
             ),
-            const SizedBox(height: 4.0,),
+            const SizedBox(
+              height: 4.0,
+            ),
             TextField(
               controller: _nameController,
               decoration: InputDecoration(
@@ -87,7 +89,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 ),
                 filled: true,
                 fillColor: Color(0xFFF2E9DC),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 14.0),
               ),
             ),
             const SizedBox(height: 20.0),
@@ -131,10 +134,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 ),
                 filled: true,
                 fillColor: Color(0xFFF2E9DC),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 14.0),
               ),
             ),
-
             const SizedBox(height: 20.0),
             const Text(
               'Password',
@@ -176,10 +179,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 ),
                 filled: true,
                 fillColor: Color(0xFFF2E9DC),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 14.0),
               ),
             ),
-
             const SizedBox(height: 20.0),
             const Text(
               'Confirm password',
@@ -221,10 +224,10 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 ),
                 filled: true,
                 fillColor: Color(0xFFF2E9DC),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 14.0),
               ),
             ),
-
             const SizedBox(height: 5.0),
             Row(
               children: <Widget>[
@@ -279,25 +282,32 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _termsAgreed ? () {
-                  // Handle sign up logic
-                  print('Sign Up button pressed');
-                  print('Name: ${_nameController.text}');
-                  print('Email: ${_emailController.text}');
-                  print('Password: ${_passwordController.text}');
-                  print('Confirm Password: ${_confirmPasswordController.text}');
-                  if (_passwordController.text != _confirmPasswordController.text) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Passwords do not match')),
-                    );
-                  } else if (_passwordController.text.length < 6) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Password must be at least 6 characters')),
-                    );
-                  } else {
-                    // Proceed with account creation
-                  }
-                } : null,
+                onPressed: _termsAgreed
+                    ? () {
+                        // Handle sign up logic
+                        print('Sign Up button pressed');
+                        print('Name: ${_nameController.text}');
+                        print('Email: ${_emailController.text}');
+                        print('Password: ${_passwordController.text}');
+                        print(
+                            'Confirm Password: ${_confirmPasswordController.text}');
+                        if (_passwordController.text !=
+                            _confirmPasswordController.text) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Passwords do not match')),
+                          );
+                        } else if (_passwordController.text.length < 6) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    'Password must be at least 6 characters')),
+                          );
+                        } else {
+                          // Proceed with account creation
+                        }
+                      }
+                    : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFC76767),
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -358,21 +368,23 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
               child: ElevatedButton(
                 onPressed: () {
                   // Handle Google sign up
-                  text:'Sign up with Google';
+                  text:
+                  'Sign up with Google';
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25.0),
-                    side: const BorderSide(color: Color(0xFF888888), width: 0.5),
+                    side:
+                        const BorderSide(color: Color(0xFF888888), width: 0.5),
                   ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Image.asset(
-                      'assets/google.jpg', // Replace with your actual asset path
+                      'assets/images/google.jpg', // Replace with your actual asset path
                       height: 24.0,
                     ),
                     const SizedBox(width: 10.0),
