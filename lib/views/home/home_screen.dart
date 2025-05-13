@@ -5,6 +5,78 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 import '../../core/theme.dart'; // AppColors, appTheme
 import '../../core/constants.dart'; // AppPadding
 
+/* ────────────────────────────────────────────────────────────── */
+/*  Model + dummy seed                                           */
+/* ────────────────────────────────────────────────────────────── */
+
+class Book {
+  final String id;
+  final String coverPath;
+  final String title;
+  final String author;
+  final String ownerName;
+  final String? ownerAvatar;
+
+  const Book({
+    required this.id,
+    required this.coverPath,
+    required this.title,
+    required this.author,
+    required this.ownerName,
+    this.ownerAvatar,
+  });
+}
+
+const List<Book> kDummyBooks = [
+  Book(
+    id: 'b1',
+    coverPath: 'assets/images/book3.jpg',
+    title: 'Things We Never Got Over',
+    author: 'Lucy Score',
+    ownerName: 'Masa Jaara',
+    ownerAvatar: 'assets/images/book3.jpg',
+  ),
+  Book(
+    id: 'b2',
+    coverPath: 'assets/images/book4.jpg',
+    title: 'This Summer Will Be Different',
+    author: 'Carley',
+    ownerName: 'Alaa Qaqa',
+  ),
+  Book(
+    id: 'b3',
+    coverPath: 'assets/images/book2.avif',
+    title: 'This Summer Will Be Different',
+    author: 'Carley',
+    ownerName: 'Alaa Qaqa',
+  ),
+  Book(
+    id: 'b4',
+    coverPath: 'assets/images/book1.jpg',
+    title: 'This Summer Will Be Different',
+    author: 'Carley',
+    ownerName: 'Alaa Qaqa',
+  ),
+  Book(
+    id: 'b5',
+    coverPath: 'assets/images/logo.png',
+    title: 'This Summer Will Be Different',
+    author: 'Carley',
+    ownerName: 'Alaa Qaqa',
+  ),
+  Book(
+    id: 'b6',
+    coverPath: 'assets/images/book5.webp',
+    title: 'This Summer Will Be Different',
+    author: 'Carley',
+    ownerName: 'Alaa Qaqa',
+  ),
+];
+
+/* ────────────────────────────────────────────────────────────── */
+/*  Home Screen                                                  */
+/* ────────────────────────────────────────────────────────────── */
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -15,75 +87,29 @@ class HomeScreen extends StatelessWidget {
     final double logoH = logoW * 1.12;
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: AppPadding.screenPadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // ------- red header + search -------
-              _Header(logoW: logoW, logoH: logoH),
+        child: ListView.builder(
+          padding: AppPadding.screenPadding.copyWith(bottom: 96),
+          itemCount: kDummyBooks.length + 2, // header + filter row
+          itemBuilder: (ctx, i) {
+            if (i == 0) return _Header(logoW: logoW, logoH: logoH);
+            if (i == 1)
+              return const Padding(
+                  padding: EdgeInsets.only(top: 5), child: _FilterRow());
 
-              const SizedBox(height: 5),
-
-              // ------- filter chips row -------
-              const _FilterRow(),
-
-              const SizedBox(height: 24),
-
-              // ------- book cards -------
-              const _BookCard(
-                coverPath: 'assets/images/book3.jpg',
-                title: 'Things We Never Got Over',
-                author: 'Lucy Score',
-                ownerName: 'Masa Jaara',
-                ownerAvatar: 'assets/images/book3.jpg',
+            final book = kDummyBooks[i - 2];
+            return Padding(
+              padding: const EdgeInsets.only(top: 24),
+              child: _BookCard(
+                coverPath: book.coverPath,
+                title: book.title,
+                author: book.author,
+                ownerName: book.ownerName,
+                ownerAvatar: book.ownerAvatar,
               ),
-
-              const SizedBox(height: 32),
-              const _BookCard(
-                coverPath: 'assets/images/book4.jpg',
-                title: 'This Summer Will Be Different',
-                author: 'Carley',
-                ownerName: 'Alaa Qaqa',
-              ),
-
-              const SizedBox(height: 32),
-              const _BookCard(
-                coverPath: 'assets/images/book2.avif',
-                title: 'This Summer Will Be Different',
-                author: 'Carley',
-                ownerName: 'Alaa Qaqa',
-              ),
-
-              const SizedBox(height: 32),
-              const _BookCard(
-                coverPath: 'assets/images/book1.jpg',
-                title: 'This Summer Will Be Different',
-                author: 'Carley',
-                ownerName: 'Alaa Qaqa',
-              ),
-
-              const SizedBox(height: 32),
-              const _BookCard(
-                coverPath: 'assets/images/logo.png',
-                title: 'This Summer Will Be Different',
-                author: 'Carley',
-                ownerName: 'Alaa Qaqa',
-              ),
-
-              const SizedBox(height: 32),
-              const _BookCard(
-                coverPath: 'assets/images/book5.webp',
-                title: 'This Summer Will Be Different',
-                author: 'Carley',
-                ownerName: 'Alaa Qaqa',
-              ),
-
-              const SizedBox(height: 96), // space for floating button
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -349,7 +375,7 @@ class _BookCard extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
           onTap: () {
-            context.go('/book-details');
+            context.go('/bookDetails');
           },
           child: Container(
             decoration: BoxDecoration(
