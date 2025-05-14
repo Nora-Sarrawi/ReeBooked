@@ -1,10 +1,97 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-void main() {
-  runApp(MaterialApp(home: SwapRequestsScreen()));
+// ===== MODEL =====
+class SwapRequest {
+  final String id;
+  final String name;
+  final String imagePath;
+  final String requestMessage;
+  final String status; // 'incoming', 'outgoing', 'archived'
+
+  SwapRequest({
+    required this.id,
+    required this.name,
+    required this.imagePath,
+    required this.requestMessage,
+    required this.status,
+  });
+
+  factory SwapRequest.fromJson(Map<String, dynamic> json) {
+    return SwapRequest(
+      id: json['id'],
+      name: json['name'],
+      imagePath: json['imagePath'],
+      requestMessage: json['requestMessage'],
+      status: json['status'],
+    );
+  }
 }
 
+// ===== MOCK BACKEND SERVICE =====
+class SwapRequestService {
+  Future<List<SwapRequest>> fetchRequests(String type) async {
+    await Future.delayed(Duration(seconds: 1)); // simulate network delay
+
+    final List<Map<String, dynamic>> mockData = [
+      {
+        "id": "1",
+        "name": "Masa Jaara",
+        "imagePath": "assets/images/profilePic2.png",
+        "requestMessage":
+            'Request to exchange your book "Things we never got over" with "This summer will be different."',
+        "status": "incoming"
+      },
+      {
+        "id": "2",
+        "name": "Nora Sarrawi",
+        "imagePath": "assets/images/profilePic1.png",
+        "requestMessage":
+            'Request to exchange your book "Atomic Habits" with "The Psychology of Money."',
+        "status": "incoming"
+      },
+      {
+        "id": "3",
+        "name": "Alaa Qaqa",
+        "imagePath": "assets/images/profilePic3.png",
+        "requestMessage":
+            'You sent a swap request for "Verity" in exchange for "The Midnight Library."',
+        "status": "outgoing"
+      },
+      {
+        "id": "4",
+        "name": "Kareem Abukharma",
+        "imagePath": "assets/images/profilePic4.png",
+        "requestMessage":
+            'You sent a swap request for "It Ends With Us" in exchange for "The Alchemist."',
+        "status": "outgoing"
+      },
+      {
+        "id": "5",
+        "name": "Dana Khaled",
+        "imagePath": "assets/images/profilePic1.png",
+        "requestMessage":
+            'Swap request completed for "The Seven Husbands of Evelyn Hugo" and "Ugly Love".',
+        "status": "archived"
+      },
+      {
+        "id": "6",
+        "name": "Layla Hamdan",
+        "imagePath": "assets/images/profilePic2.png",
+        "requestMessage":
+            'Swap declined: "Where the Crawdads Sing" for "A Good Girl’s Guide to Murder".',
+        "status": "archived"
+      },
+    ];
+
+    return mockData
+        .where((item) => item['status'] == type)
+        .map((json) => SwapRequest.fromJson(json))
+        .toList();
+  }
+}
+
+// ===== MAIN SCREEN =====
 class SwapRequestsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -15,7 +102,9 @@ class SwapRequestsScreen extends StatelessWidget {
         appBar: AppBar(
           backgroundColor: Colors.white,
           elevation: 0,
-          leading: Icon(Icons.arrow_back, color: Color(0xFF562B56)),
+          leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: Color(0xFF562B56)),
+              onPressed: () {}),
           title: Text(
             'Swap requests',
             style: TextStyle(
@@ -42,9 +131,9 @@ class SwapRequestsScreen extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
-            IncomingTabContent(),
-            OutgoingTabContent(),
-            ArchivedTabContent(),
+            RequestTab(type: 'incoming'),
+            RequestTab(type: 'outgoing'),
+            RequestTab(type: 'archived'),
           ],
         ),
       ),
@@ -52,26 +141,64 @@ class SwapRequestsScreen extends StatelessWidget {
   }
 }
 
-class IncomingTabContent extends StatelessWidget {
+// ===== REQUEST TAB HANDLER =====
+class RequestTab extends StatelessWidget {
+  final String type;
+  final service = SwapRequestService();
+
+  RequestTab({required this.type});
+
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.all(16),
-      children: [
-        IncomingRequest(name: 'Masa Jaara', imagePath: 'assets/images/profilePic2.png'),
-        IncomingRequest(name: 'Nora Sarrawi', imagePath: 'assets/images/profilePic1.png'),
-        IncomingRequest(name: 'Alaa Qaqa', imagePath: 'assets/images/profilePic3.png'),
-        IncomingRequest(name: 'Kareem Abukharma', imagePath: 'assets/images/profilePic4.png'),
-      ],
+    return FutureBuilder<List<SwapRequest>>(
+      future: service.fetchRequests(type),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(
+              child: CircularProgressIndicator(color: Color(0xFF562B56)));
+        } else if (snapshot.hasError) {
+          return Center(child: Text("Error loading $type requests"));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text("No $type requests"));
+        }
+
+        final requests = snapshot.data!;
+        return ListView.builder(
+          padding: EdgeInsets.all(16),
+          itemCount: requests.length,
+          itemBuilder: (context, index) {
+            final request = requests[index];
+            if (type == 'incoming') {
+              return IncomingRequestWidget(request: request);
+            } else if (type == 'outgoing') {
+              return OutgoingRequestWidget(request: request);
+            } else {
+              return ArchivedRequestWidget(request: request);
+            }
+          },
+        );
+      },
     );
   }
 }
 
-class IncomingRequest extends StatelessWidget {
-  final String name;
-  final String imagePath;
+// ===== INCOMING WIDGET =====
+class IncomingRequestWidget extends StatelessWidget {
+  final SwapRequest request;
 
-  const IncomingRequest({required this.name, required this.imagePath});
+  IncomingRequestWidget({required this.request});
+
+  void acceptRequest(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text("Accepted request from ${request.name}"),
+    ));
+  }
+
+  void declineRequest(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text("Declined request from ${request.name}"),
+    ));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,36 +206,33 @@ class IncomingRequest extends StatelessWidget {
       children: [
         InkWell(
           onTap: () {
-            context.go('/Request-details');
+            context.go('/request-details');
           },
-          borderRadius: BorderRadius.circular(8),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(radius: 24, backgroundImage: AssetImage(imagePath)),
+              CircleAvatar(
+                  radius: 24, backgroundImage: AssetImage(request.imagePath)),
               SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      name,
+                      request.name,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF562B56),
                       ),
                     ),
                     Text(
-                      'Request to exchange your book "Things we never got over" with "This summer will be different."',
+                      request.requestMessage,
                       style: TextStyle(color: Color(0xFF562B56)),
                     ),
                     SizedBox(height: 8),
                     Row(
                       children: [
                         ElevatedButton(
-                          onPressed: () {
-                            print("Accepted request from $name");
-                          },
+                          onPressed: () => acceptRequest(context),
                           child: Text('Accept'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xFFCDA2F2),
@@ -117,9 +241,7 @@ class IncomingRequest extends StatelessWidget {
                         ),
                         SizedBox(width: 8),
                         ElevatedButton(
-                          onPressed: () {
-                            print("Declined request from $name");
-                          },
+                          onPressed: () => declineRequest(context),
                           child: Text('Decline'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xFFCDA2F2),
@@ -140,47 +262,11 @@ class IncomingRequest extends StatelessWidget {
   }
 }
 
-class OutgoingTabContent extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.all(16),
-      children: [
-        OutgoingItem(
-          title: 'SALE IS LIVE',
-          subtitle: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet, consectetur adipiscing elit.',
-          imagePath: 'assets/images/profile1.png',
-        ),
-        OutgoingItem(
-          title: 'SALE IS LIVE',
-          subtitle: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet, consectetur adipiscing elit.',
-          imagePath: 'assets/images/profile4.png',
-        ),
-        OutgoingItem(
-          title: 'SALE IS LIVE',
-          subtitle: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet, consectetur adipiscing elit.',
-          imagePath: 'assets/images/profile2.png',
-        ),
-        OutgoingItem(
-          title: 'SALE IS LIVE',
-          subtitle: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet, consectetur adipiscing elit.',
-          imagePath: 'assets/images/profile3.png',
-        ),
-      ],
-    );
-  }
-}
+// ===== OUTGOING WIDGET =====
+class OutgoingRequestWidget extends StatelessWidget {
+  final SwapRequest request;
 
-class OutgoingItem extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final String imagePath;
-
-  const OutgoingItem({
-    required this.title,
-    required this.subtitle,
-    required this.imagePath,
-  });
+  OutgoingRequestWidget({required this.request});
 
   @override
   Widget build(BuildContext context) {
@@ -188,24 +274,24 @@ class OutgoingItem extends StatelessWidget {
       children: [
         Row(
           children: [
-            CircleAvatar(radius: 24, backgroundImage: AssetImage(imagePath)),
+            CircleAvatar(
+                radius: 24, backgroundImage: AssetImage(request.imagePath)),
             SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    request.name,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF562B56),
                     ),
                   ),
                   Text(
-                    subtitle,
+                    request.requestMessage,
                     style: TextStyle(color: Color(0xFF562B56)),
                   ),
-                  SizedBox(height: 4),
                 ],
               ),
             ),
@@ -217,29 +303,11 @@ class OutgoingItem extends StatelessWidget {
   }
 }
 
-class ArchivedTabContent extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.all(16),
-      children: [
-        ArchivedItem(name: 'Masa Jaara', imagePath: 'assets/images/profilePic2.png'),
-        ArchivedItem(name: 'Nora Sarrawi', imagePath: 'assets/images/profilePic1.png'),
-        ArchivedItem(name: 'Alaa Qaqa', imagePath: 'assets/images/profilePic3.png'),
-        ArchivedItem(name: 'Kareem Abukharma', imagePath: 'assets/images/profilePic4.png'),
-      ],
-    );
-  }
-}
+// ===== ARCHIVED WIDGET =====
+class ArchivedRequestWidget extends StatelessWidget {
+  final SwapRequest request;
 
-class ArchivedItem extends StatelessWidget {
-  final String name;
-  final String imagePath;
-
-  const ArchivedItem({
-    required this.name,
-    required this.imagePath,
-  });
+  ArchivedRequestWidget({required this.request});
 
   @override
   Widget build(BuildContext context) {
@@ -247,21 +315,22 @@ class ArchivedItem extends StatelessWidget {
       children: [
         Row(
           children: [
-            CircleAvatar(radius: 24, backgroundImage: AssetImage(imagePath)),
+            CircleAvatar(
+                radius: 24, backgroundImage: AssetImage(request.imagePath)),
             SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    name,
+                    request.name,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF562B56),
                     ),
                   ),
                   Text(
-                    'Request to exchange your book "Things we never got over" with "This summer will be different."',
+                    request.requestMessage,
                     style: TextStyle(color: Color(0xFF562B56)),
                   ),
                 ],
