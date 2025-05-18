@@ -9,6 +9,8 @@ import '../../core/constants.dart'; // AppPadding
 /*  Model + dummy seed                                           */
 /* ────────────────────────────────────────────────────────────── */
 
+enum BookStatus { available, requested, onLoan }
+
 class Book {
   final String id;
   final String coverPath;
@@ -16,6 +18,9 @@ class Book {
   final String author;
   final String ownerName;
   final String? ownerAvatar;
+  final String location;
+  final String genre;
+  final BookStatus status;
 
   const Book({
     required this.id,
@@ -24,6 +29,9 @@ class Book {
     required this.author,
     required this.ownerName,
     this.ownerAvatar,
+    required this.location,
+    required this.genre,
+    this.status = BookStatus.available,
   });
 }
 
@@ -35,6 +43,9 @@ const List<Book> kDummyBooks = [
     author: 'Lucy Score',
     ownerName: 'Masa Jaara',
     ownerAvatar: 'assets/images/book3.jpg',
+    location: 'Amman',
+    genre: 'Romance',
+    status: BookStatus.available,
   ),
   Book(
     id: 'b2',
@@ -42,34 +53,51 @@ const List<Book> kDummyBooks = [
     title: 'This Summer Will Be Different',
     author: 'Carley',
     ownerName: 'Alaa Qaqa',
+    location: 'Nablus',
+    genre: 'Mystery',
+    status: BookStatus.requested,
   ),
   Book(
-    id: 'b3',
-    coverPath: 'assets/images/book2.avif',
+    id: 'b1',
+    coverPath: 'assets/images/book3.jpg',
+    title: 'Things We Never Got Over',
+    author: 'Lucy Score',
+    ownerName: 'Masa Jaara',
+    ownerAvatar: 'assets/images/book3.jpg',
+    location: 'Amman',
+    genre: 'Romance',
+    status: BookStatus.available,
+  ),
+  Book(
+    id: 'b2',
+    coverPath: 'assets/images/book4.jpg',
     title: 'This Summer Will Be Different',
     author: 'Carley',
     ownerName: 'Alaa Qaqa',
+    location: 'Nablus',
+    genre: 'Mystery',
+    status: BookStatus.requested,
   ),
   Book(
-    id: 'b4',
-    coverPath: 'assets/images/book1.jpg',
+    id: 'b1',
+    coverPath: 'assets/images/book3.jpg',
+    title: 'Things We Never Got Over',
+    author: 'Lucy Score',
+    ownerName: 'Masa Jaara',
+    ownerAvatar: 'assets/images/book3.jpg',
+    location: 'Amman',
+    genre: 'Romance',
+    status: BookStatus.available,
+  ),
+  Book(
+    id: 'b2',
+    coverPath: 'assets/images/book4.jpg',
     title: 'This Summer Will Be Different',
     author: 'Carley',
     ownerName: 'Alaa Qaqa',
-  ),
-  Book(
-    id: 'b5',
-    coverPath: 'assets/images/logo.png',
-    title: 'This Summer Will Be Different',
-    author: 'Carley',
-    ownerName: 'Alaa Qaqa',
-  ),
-  Book(
-    id: 'b6',
-    coverPath: 'assets/images/book5.webp',
-    title: 'This Summer Will Be Different',
-    author: 'Carley',
-    ownerName: 'Alaa Qaqa',
+    location: 'Nablus',
+    genre: 'Mystery',
+    status: BookStatus.requested,
   ),
 ];
 
@@ -107,6 +135,9 @@ class HomeScreen extends StatelessWidget {
                 author: book.author,
                 ownerName: book.ownerName,
                 ownerAvatar: book.ownerAvatar,
+                location: book.location,
+                genre: book.genre,
+                status: book.status,
               ),
             );
           },
@@ -338,7 +369,7 @@ class _DropdownChipState extends State<_DropdownChip> {
 }
 
 /*─────────────────────────────────────────────────────────────────────────────*/
-/*  Book Card – centred text, centred image, left-aligned owner row           */
+/*  Book Card                           */
 /*─────────────────────────────────────────────────────────────────────────────*/
 
 class _BookCard extends StatelessWidget {
@@ -348,24 +379,41 @@ class _BookCard extends StatelessWidget {
     required this.author,
     required this.ownerName,
     this.ownerAvatar,
-    this.widthFactor = .80, // % of screen width
-    this.cardHeight = 280, // total beige card height
-    this.contentPadding = 16, // left padding for avatar + name row
+    this.location = '',
+    this.genre = '',
+    this.status = BookStatus.available,
+    this.widthFactor = .80,
+    this.cardHeight = 340,
+    this.contentPadding = 16,
     super.key,
   });
 
   final String coverPath, title, author, ownerName;
   final String? ownerAvatar;
-  final double widthFactor;
-  final double cardHeight;
-  final double contentPadding;
+  final String location, genre;
+  final BookStatus status;
+  final double widthFactor, cardHeight, contentPadding;
 
   @override
   Widget build(BuildContext context) {
-    // responsive width with min/max safety
     final double cardW =
         (MediaQuery.of(context).size.width * widthFactor).clamp(212, 260);
     final double cardH = cardHeight.clamp(220, 400);
+
+    Color _statusColor() {
+      switch (status) {
+        case BookStatus.available:
+          return Colors.green;
+        case BookStatus.requested:
+          return Colors.orange;
+        case BookStatus.onLoan:
+          return Colors.red;
+      }
+    }
+
+    String _statusText() => status.name
+        .replaceFirstMapped(RegExp(r'([A-Z])'), (m) => ' ${m.group(1)}')
+        .trim();
 
     return Align(
       alignment: Alignment.center,
@@ -374,9 +422,7 @@ class _BookCard extends StatelessWidget {
         height: cardH,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            context.go('/bookDetails');
-          },
+          onTap: () => GoRouter.of(context).go('/book-details'),
           child: Container(
             decoration: BoxDecoration(
               color: AppColors.beige,
@@ -385,16 +431,15 @@ class _BookCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // -------- Cover (centred) ---------------------------------------
+                // Cover
                 Align(
                   alignment: Alignment.topCenter,
                   child: Padding(
                     padding: const EdgeInsets.only(top: 16),
                     child: ClipRRect(
                       borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(16),
-                        bottom: Radius.circular(16),
-                      ),
+                          top: Radius.circular(16),
+                          bottom: Radius.circular(16)),
                       child: Image.asset(
                         coverPath,
                         height: 160,
@@ -406,7 +451,7 @@ class _BookCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // -------- Title & author (centred text) -------------------------
+                // Title & author
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Column(
@@ -430,9 +475,47 @@ class _BookCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                const Spacer(),
 
-                // -------- Owner row (left-aligned) ------------------------------
+                const SizedBox(height: 8),
+                // New: location & genre
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.location_on,
+                          size: 14, color: AppColors.secondary),
+                      const SizedBox(width: 4),
+                      Text(location, style: const TextStyle(fontSize: 12)),
+                      const SizedBox(width: 12),
+                      Icon(Icons.category,
+                          size: 14, color: AppColors.secondary),
+                      const SizedBox(width: 4),
+                      Text(genre, style: const TextStyle(fontSize: 12)),
+                    ],
+                  ),
+                ),
+
+                const Spacer(),
+                // New: status badge
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _statusColor().withOpacity(.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    _statusText(),
+                    style: TextStyle(
+                        color: _statusColor(),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Owner row
                 Padding(
                   padding: EdgeInsets.only(
                       left: contentPadding, right: 12, bottom: 16),
