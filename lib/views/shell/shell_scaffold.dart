@@ -8,6 +8,7 @@ import '../requests/requests_screen.dart';
 import '../notifications/notifications_screen.dart';
 import '../profile/profile_screen.dart';
 import '../../core/theme.dart';
+import '../swaps/swap_request_screen.dart';
 
 class ShellScaffold extends StatefulWidget {
   const ShellScaffold({super.key, required Widget child});
@@ -25,7 +26,6 @@ class _ShellScaffoldState extends State<ShellScaffold> {
     MyBooksScreen(),
     NotificationsScreen(),
     ProfileScreen(),
-   
   ];
 
   @override
@@ -105,9 +105,12 @@ class _ShellScaffoldState extends State<ShellScaffold> {
         floatingActionButton: _index == 0
             ? FloatingActionButton(
                 backgroundColor: AppColors.primary,
-                onPressed: () {context.go('/add-book');},
+                onPressed: () {
+
+                  context.go('/add-book');
+                },
                 shape: const CircleBorder(),
-                child: const Icon(Icons.add),
+                child: const Icon(Icons.add, color: Colors.white),
               )
             : null,
       ),

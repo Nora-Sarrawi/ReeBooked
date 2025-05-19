@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rebooked_app/core/theme.dart';
 
-import '../../core/custom_text_field.dart';
+import '../settings/settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -39,7 +39,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         actions: [
           IconButton(
             icon: Icon(Icons.settings, color: AppColors.secondary),
-            onPressed: () { context.push('/settings');},
+
+            onPressed: () {Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SettingsPage()),
+    );},
+
           ),
         ],
       ),

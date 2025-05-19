@@ -1,11 +1,61 @@
 import 'package:flutter/material.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/theme.dart'; // AppColors, appTheme
 import '../../core/constants.dart'; // AppPadding
 
-class MyBooksScreen extends StatelessWidget {
+class Book {
+  final String coverPath;
+  final String title;
+  final String author;
+
+  Book({required this.coverPath, required this.title, required this.author});
+}
+
+class MyBooksScreen extends StatefulWidget {
   const MyBooksScreen({super.key});
+
+  @override
+  _MyBooksScreenState createState() => _MyBooksScreenState();
+}
+
+class _MyBooksScreenState extends State<MyBooksScreen> {
+  late Future<List<Book>> booksFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    booksFuture = fetchBooks();
+  }
+
+  Future<List<Book>> fetchBooks() async {
+    return [
+      Book(
+          coverPath: 'assets/images/bookCover2.png',
+          title: 'We Never Got Over',
+          author: 'Lucy Score'),
+      Book(
+          coverPath: 'assets/images/bookCover3.png',
+          title: 'This Summer Will Be Different',
+          author: 'Carley Fortune'),
+      Book(
+          coverPath: 'assets/images/bookCover4.png',
+          title: 'Deathly Hollows',
+          author: 'Harry Potter'),
+      Book(
+          coverPath: 'assets/images/bookCover5.png',
+          title: 'The beloved girls',
+          author: 'Harriet Evans'),
+      Book(
+          coverPath: 'assets/images/bookCover6.png',
+          title: 'The book of art',
+          author: 'Thomas J.'),
+      Book(
+          coverPath: 'assets/images/bookCover7.png',
+          title: 'The island',
+          author: 'Usher Evans'),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,54 +64,56 @@ class MyBooksScreen extends StatelessWidget {
     final double logoH = logoW * 0.5;
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: AppPadding.screenPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _Header(logoW: logoW, logoH: logoH),
+              _Header(
+                logoW: logoW,
+                logoH: logoH,
+                onSearch: (query) {
+                  // Handle search
+                },
+              ),
               const SizedBox(height: 20),
-              GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 24,
-                childAspectRatio: 0.6,
-                children: const [
-                  _BookCard(
-                    coverPath: 'assets/images/bookCover2.png',
-                    title: 'We Never Got Over',
-                    author: 'Lucy Score',
-                  ),
-                  _BookCard(
-                    coverPath: 'assets/images/bookCover3.png',
-                    title: 'This Summer Will Be Different',
-                    author: 'Carley Fortune',
-                  ),
-                  _BookCard(
-                    coverPath: 'assets/images/bookCover4.png',
-                    title: 'Deathly Hollows',
-                    author: 'Harry Potter',
-                  ),
-                  _BookCard(
-                    coverPath: 'assets/images/bookCover5.png',
-                    title: 'The beloved girls',
-                    author: 'Harriet Evans',
-                  ),
-                  _BookCard(
-                    coverPath: 'assets/images/bookCover6.png',
-                    title: 'The book of art',
-                    author: 'Thomas J.',
-                  ),
-                  _BookCard(
-                    coverPath: 'assets/images/bookCover7.png',
-                    title: 'The island',
-                    author: 'Usher Evans',
-                  ),
-                ],
+              FutureBuilder<List<Book>>(
+                future: booksFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (snapshot.hasData) {
+                    return GridView.builder(
+                      itemCount: snapshot.data!.length,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 0.75, // Make cards shorter
+                      ),
+                      itemBuilder: (context, index) {
+                        final book = snapshot.data![index];
+                        return _BookCard(
+                          coverPath: book.coverPath,
+                          title: book.title,
+                          author: book.author,
+                          onPressed: () {
+                            context.go('/bookDetails', extra: book);
+                          },
+                        );
+                      },
+                    );
+                  } else {
+                    return const Center(child: Text('No books found.'));
+                  }
+                },
               ),
               const SizedBox(height: 96),
             ],
@@ -72,27 +124,12 @@ class MyBooksScreen extends StatelessWidget {
   }
 }
 
-/*─────────────────────────────────────────────────────────────────────────────*/
-/*  Header                                                                     */
-/*─────────────────────────────────────────────────────────────────────────────*/
-
-class _Header extends StatefulWidget {
-  const _Header({required this.logoW, required this.logoH});
+class _Header extends StatelessWidget {
+  const _Header(
+      {required this.logoW, required this.logoH, required this.onSearch});
 
   final double logoW, logoH;
-
-  @override
-  State<_Header> createState() => _HeaderState();
-}
-
-class _HeaderState extends State<_Header> {
-  final _search = TextEditingController();
-
-  @override
-  void dispose() {
-    _search.dispose();
-    super.dispose();
-  }
+  final Function(String) onSearch;
 
   @override
   Widget build(BuildContext context) {
@@ -123,9 +160,7 @@ class _HeaderState extends State<_Header> {
         ),
         const SizedBox(height: 10),
         TextField(
-          controller: _search,
-          textInputAction: TextInputAction.search,
-          onSubmitted: (q) => debugPrint('Search: $q'),
+          onSubmitted: onSearch,
           style: const TextStyle(color: Colors.white, fontSize: 16),
           cursorColor: Colors.white,
           decoration: InputDecoration(
@@ -150,10 +185,6 @@ class _HeaderState extends State<_Header> {
   }
 }
 
-/*─────────────────────────────────────────────────────────────────────────────*/
-/*  Book Card                                                                  */
-/*─────────────────────────────────────────────────────────────────────────────*/
-
 class _BookCard extends StatelessWidget {
   const _BookCard({
     required this.coverPath,
@@ -162,6 +193,7 @@ class _BookCard extends StatelessWidget {
     this.widthFactor = 1.0,
     this.cardHeight = 120,
     this.contentPadding = 16,
+    this.onPressed,
     super.key,
   });
 
@@ -169,55 +201,55 @@ class _BookCard extends StatelessWidget {
   final double widthFactor;
   final double cardHeight;
   final double contentPadding;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.beige,
-        borderRadius: BorderRadius.circular(16),
+    return TextButton(
+      style: TextButton.styleFrom(
+        padding: EdgeInsets.zero,
+        backgroundColor: AppColors.beige,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Align(
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 30),
+      onPressed: onPressed,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 16), // smaller padding
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16), bottom: Radius.circular(16)),
+                borderRadius: BorderRadius.circular(12),
                 child: Image.asset(
                   coverPath,
-                  height: 120,
+                  height: 120, // reduced image height
                   width: 100,
                   fit: BoxFit.cover,
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 18),
-          Column(
-            children: [
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                author,
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium!
-                    .copyWith(fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-        ],
+            const SizedBox(height: 10), // reduced spacing
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 8), // reduced spacing
+            Text(
+              author,
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium!
+                  .copyWith(fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,9 +1,109 @@
-import 'package:rebooked_app/widgets/book_card.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 
 import '../../core/theme.dart'; // AppColors, appTheme
 import '../../core/constants.dart'; // AppPadding
+
+/* ────────────────────────────────────────────────────────────── */
+/*  Model + dummy seed                                           */
+/* ────────────────────────────────────────────────────────────── */
+
+enum BookStatus { available, requested, onLoan }
+
+class Book {
+  final String id;
+  final String coverPath;
+  final String title;
+  final String author;
+  final String ownerName;
+  final String? ownerAvatar;
+  final String location;
+  final String genre;
+  final BookStatus status;
+
+  const Book({
+    required this.id,
+    required this.coverPath,
+    required this.title,
+    required this.author,
+    required this.ownerName,
+    this.ownerAvatar,
+    required this.location,
+    required this.genre,
+    this.status = BookStatus.available,
+  });
+}
+
+const List<Book> kDummyBooks = [
+  Book(
+    id: 'b1',
+    coverPath: 'assets/images/book3.jpg',
+    title: 'Things We Never Got Over',
+    author: 'Lucy Score',
+    ownerName: 'Masa Jaara',
+    ownerAvatar: 'assets/images/book3.jpg',
+    location: 'Amman',
+    genre: 'Romance',
+    status: BookStatus.available,
+  ),
+  Book(
+    id: 'b2',
+    coverPath: 'assets/images/book4.jpg',
+    title: 'This Summer Will Be Different',
+    author: 'Carley',
+    ownerName: 'Alaa Qaqa',
+    location: 'Nablus',
+    genre: 'Mystery',
+    status: BookStatus.requested,
+  ),
+  Book(
+    id: 'b1',
+    coverPath: 'assets/images/book3.jpg',
+    title: 'Things We Never Got Over',
+    author: 'Lucy Score',
+    ownerName: 'Masa Jaara',
+    ownerAvatar: 'assets/images/book3.jpg',
+    location: 'Amman',
+    genre: 'Romance',
+    status: BookStatus.available,
+  ),
+  Book(
+    id: 'b2',
+    coverPath: 'assets/images/book4.jpg',
+    title: 'This Summer Will Be Different',
+    author: 'Carley',
+    ownerName: 'Alaa Qaqa',
+    location: 'Nablus',
+    genre: 'Mystery',
+    status: BookStatus.requested,
+  ),
+  Book(
+    id: 'b1',
+    coverPath: 'assets/images/book3.jpg',
+    title: 'Things We Never Got Over',
+    author: 'Lucy Score',
+    ownerName: 'Masa Jaara',
+    ownerAvatar: 'assets/images/book3.jpg',
+    location: 'Amman',
+    genre: 'Romance',
+    status: BookStatus.available,
+  ),
+  Book(
+    id: 'b2',
+    coverPath: 'assets/images/book4.jpg',
+    title: 'This Summer Will Be Different',
+    author: 'Carley',
+    ownerName: 'Alaa Qaqa',
+    location: 'Nablus',
+    genre: 'Mystery',
+    status: BookStatus.requested,
+  ),
+];
+
+/* ────────────────────────────────────────────────────────────── */
+/*  Home Screen                                                  */
+/* ────────────────────────────────────────────────────────────── */
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,75 +115,32 @@ class HomeScreen extends StatelessWidget {
     final double logoH = logoW * 1.12;
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: AppPadding.screenPadding,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // ------- red header + search -------
-              _Header(logoW: logoW, logoH: logoH),
+        child: ListView.builder(
+          padding: AppPadding.screenPadding.copyWith(bottom: 96),
+          itemCount: kDummyBooks.length + 2, // header + filter row
+          itemBuilder: (ctx, i) {
+            if (i == 0) return _Header(logoW: logoW, logoH: logoH);
+            if (i == 1)
+              return const Padding(
+                  padding: EdgeInsets.only(top: 5), child: _FilterRow());
 
-              const SizedBox(height: 5),
-
-              // ------- filter chips row -------
-              const _FilterRow(),
-
-              const SizedBox(height: 24),
-
-              // ------- book cards -------
-              const _BookCard(
-                coverPath: 'assets/images/book3.jpg',
-                title: 'Things We Never Got Over',
-                author: 'Lucy Score',
-                ownerName: 'Masa Jaara',
-                ownerAvatar: 'assets/images/book3.jpg',
+            final book = kDummyBooks[i - 2];
+            return Padding(
+              padding: const EdgeInsets.only(top: 24),
+              child: _BookCard(
+                coverPath: book.coverPath,
+                title: book.title,
+                author: book.author,
+                ownerName: book.ownerName,
+                ownerAvatar: book.ownerAvatar,
+                location: book.location,
+                genre: book.genre,
+                status: book.status,
               ),
-
-              const SizedBox(height: 32),
-              const _BookCard(
-                coverPath: 'assets/images/book4.jpg',
-                title: 'This Summer Will Be Different',
-                author: 'Carley',
-                ownerName: 'Alaa Qaqa',
-              ),
-
-              const SizedBox(height: 32),
-              const _BookCard(
-                coverPath: 'assets/images/book2.avif',
-                title: 'This Summer Will Be Different',
-                author: 'Carley',
-                ownerName: 'Alaa Qaqa',
-              ),
-
-              const SizedBox(height: 32),
-              const _BookCard(
-                coverPath: 'assets/images/book1.jpg',
-                title: 'This Summer Will Be Different',
-                author: 'Carley',
-                ownerName: 'Alaa Qaqa',
-              ),
-
-              const SizedBox(height: 32),
-              const _BookCard(
-                coverPath: 'assets/images/logo.png',
-                title: 'This Summer Will Be Different',
-                author: 'Carley',
-                ownerName: 'Alaa Qaqa',
-              ),
-
-              const SizedBox(height: 32),
-              const _BookCard(
-                coverPath: 'assets/images/book5.webp',
-                title: 'This Summer Will Be Different',
-                author: 'Carley',
-                ownerName: 'Alaa Qaqa',
-              ),
-
-              const SizedBox(height: 96), // space for floating button
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -312,7 +369,7 @@ class _DropdownChipState extends State<_DropdownChip> {
 }
 
 /*─────────────────────────────────────────────────────────────────────────────*/
-/*  Book Card – centred text, centred image, left-aligned owner row           */
+/*  Book Card                           */
 /*─────────────────────────────────────────────────────────────────────────────*/
 
 class _BookCard extends StatelessWidget {
@@ -322,117 +379,171 @@ class _BookCard extends StatelessWidget {
     required this.author,
     required this.ownerName,
     this.ownerAvatar,
-    this.widthFactor = .80, // % of screen width
-    this.cardHeight = 280, // total beige card height
-    this.contentPadding = 16, // left padding for avatar + name row
+    this.location = '',
+    this.genre = '',
+    this.status = BookStatus.available,
+    this.widthFactor = .80,
+    this.cardHeight = 340,
+    this.contentPadding = 16,
     super.key,
   });
 
   final String coverPath, title, author, ownerName;
   final String? ownerAvatar;
-  final double widthFactor;
-  final double cardHeight;
-  final double contentPadding;
+  final String location, genre;
+  final BookStatus status;
+  final double widthFactor, cardHeight, contentPadding;
 
   @override
   Widget build(BuildContext context) {
-    // responsive width with min/max safety
     final double cardW =
         (MediaQuery.of(context).size.width * widthFactor).clamp(212, 260);
     final double cardH = cardHeight.clamp(220, 400);
+
+    Color _statusColor() {
+      switch (status) {
+        case BookStatus.available:
+          return Colors.green;
+        case BookStatus.requested:
+          return Colors.orange;
+        case BookStatus.onLoan:
+          return Colors.red;
+      }
+    }
+
+    String _statusText() => status.name
+        .replaceFirstMapped(RegExp(r'([A-Z])'), (m) => ' ${m.group(1)}')
+        .trim();
 
     return Align(
       alignment: Alignment.center,
       child: SizedBox(
         width: cardW,
         height: cardH,
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.beige,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center, // centre text column
-            children: [
-              // -------- Cover (centred) ---------------------------------------
-              Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 16),
-                  child: ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(16), bottom: Radius.circular(16)),
-                    child: Image.asset(
-                      coverPath,
-                      height: 160,
-                      width: 150, // thumbnail width
-                      fit: BoxFit.cover,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => GoRouter.of(context).go('/book-details'),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.beige,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Cover
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 16),
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(16),
+                          bottom: Radius.circular(16)),
+                      child: Image.asset(
+                        coverPath,
+                        height: 160,
+                        width: 150,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-              // -------- Title & author (centred text) -------------------------
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Column(
-                  children: [
-                    Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      author,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium!
-                          .copyWith(fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ),
-              const Spacer(),
-
-              // -------- Owner row (left-aligned) ------------------------------
-              Padding(
-                padding: EdgeInsets.only(
-                    left: contentPadding, right: 12, bottom: 16),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 15,
-                      backgroundImage: ownerAvatar == null
-                          ? const AssetImage(
-                              'assets/images/book1.jpg',
-                            ) as ImageProvider // default
-                          : (ownerAvatar!.startsWith(
-                              'http',
-                            )
-                              ? NetworkImage(
-                                  ownerAvatar!,
-                                ) // Cloud Storage / URL
-                              : AssetImage(
-                                  ownerAvatar!,
-                                )), // local asset
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        ownerName,
+                // Title & author
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Column(
+                    children: [
+                      Text(
+                        title,
+                        textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        author,
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium!
+                            .copyWith(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 8),
+                // New: location & genre
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.location_on,
+                          size: 14, color: AppColors.secondary),
+                      const SizedBox(width: 4),
+                      Text(location, style: const TextStyle(fontSize: 12)),
+                      const SizedBox(width: 12),
+                      Icon(Icons.category,
+                          size: 14, color: AppColors.secondary),
+                      const SizedBox(width: 4),
+                      Text(genre, style: const TextStyle(fontSize: 12)),
+                    ],
+                  ),
+                ),
+
+                const Spacer(),
+                // New: status badge
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _statusColor().withOpacity(.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    _statusText(),
+                    style: TextStyle(
+                        color: _statusColor(),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Owner row
+                Padding(
+                  padding: EdgeInsets.only(
+                      left: contentPadding, right: 12, bottom: 16),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 15,
+                        backgroundImage: ownerAvatar == null
+                            ? const AssetImage(
+                                'assets/images/book1.jpg',
+                              ) as ImageProvider
+                            : (ownerAvatar!.startsWith('http')
+                                ? NetworkImage(ownerAvatar!)
+                                : AssetImage(ownerAvatar!)),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          ownerName,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -35,7 +35,7 @@ class AppTheme {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.texe_field_background,
+      fillColor: Colors.transparent,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(25),
         borderSide: BorderSide(color: AppColors.primary, width: 2),
