@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:rebooked_app/core/theme.dart';
 import 'package:rebooked_app/widgets/primary_button.dart';
 
@@ -98,9 +99,11 @@ class _AddBookScreenState extends State<AddBookScreen> {
                         IconButton(
                           icon: const Icon(Icons.arrow_back),
                           color: AppColors.secondary,
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
+                            onPressed: () {
+                              context.go('/home');
+                            }
+
+
                         ),
                         SizedBox(width: screenWidth * 0.02),
                         Text(

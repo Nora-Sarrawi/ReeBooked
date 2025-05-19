@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:rebooked_app/core/theme.dart';
 import 'package:rebooked_app/views/auth/reset_password/reset_password_screen2.dart';
 import 'package:rebooked_app/widgets/primary_button.dart';
@@ -13,7 +14,8 @@ class ResetPasswordScreen3 extends StatefulWidget {
 class _ResetPasswordScreen3State extends State<ResetPasswordScreen3> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   void _resetPassword() {
     if (_formKey.currentState?.validate() ?? false) {
@@ -31,7 +33,7 @@ class _ResetPasswordScreen3State extends State<ResetPasswordScreen3> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context);
+                context.go('login');
               },
               child: const Text(
                 'OK',
@@ -76,8 +78,11 @@ class _ResetPasswordScreen3State extends State<ResetPasswordScreen3> {
                           icon: const Icon(Icons.arrow_back),
                           color: AppColors.secondary,
                           onPressed: () {
-                            Navigator.push(context,
-                              MaterialPageRoute(builder: (context) => ResetPasswordScreen2()),);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ResetPasswordScreen2()),
+                            );
                           },
                         ),
                         SizedBox(width: screenWidth * 0.02),
