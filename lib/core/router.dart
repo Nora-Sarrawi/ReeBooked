@@ -76,7 +76,7 @@ final GoRouter router = GoRouter(
     GoRoute(path: '/Login', builder: (_, __) => LoginPage()),
     GoRoute(path: '/Signup', builder: (_, __) => CreateAccountScreen()),
     GoRoute(path: '/swap-request', builder: (_, __) => SwapRequestsScreen()),
-    GoRoute(path: '/request-details', builder: (_, __) => RequestDetailsScreen()),
+
 
   ],
 );

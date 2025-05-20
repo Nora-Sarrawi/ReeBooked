@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,77 +18,15 @@ class SwapRequest {
     required this.status,
   });
 
-  factory SwapRequest.fromJson(Map<String, dynamic> json) {
+  factory SwapRequest.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
     return SwapRequest(
-      id: json['id'],
-      name: json['name'],
-      imagePath: json['imagePath'],
-      requestMessage: json['requestMessage'],
-      status: json['status'],
+      id: doc.id,
+      name: data['name'] ?? '',
+      imagePath: data['imagePath'] ?? '',
+      requestMessage: data['requestMessage'] ?? '',
+      status: data['status'] ?? '',
     );
-  }
-}
-
-// ===== MOCK BACKEND SERVICE =====
-class SwapRequestService {
-  Future<List<SwapRequest>> fetchRequests(String type) async {
-    await Future.delayed(Duration(seconds: 1)); // simulate network delay
-
-    final List<Map<String, dynamic>> mockData = [
-      {
-        "id": "1",
-        "name": "Masa Jaara",
-        "imagePath": "assets/images/profilePic2.png",
-        "requestMessage":
-            'Request to exchange your book "Things we never got over" with "This summer will be different."',
-        "status": "incoming"
-      },
-      {
-        "id": "2",
-        "name": "Nora Sarrawi",
-        "imagePath": "assets/images/profilePic1.png",
-        "requestMessage":
-            'Request to exchange your book "Atomic Habits" with "The Psychology of Money."',
-        "status": "incoming"
-      },
-      {
-        "id": "3",
-        "name": "Alaa Qaqa",
-        "imagePath": "assets/images/profilePic3.png",
-        "requestMessage":
-            'You sent a swap request for "Verity" in exchange for "The Midnight Library."',
-        "status": "outgoing"
-      },
-      {
-        "id": "4",
-        "name": "Kareem Abukharma",
-        "imagePath": "assets/images/profilePic4.png",
-        "requestMessage":
-            'You sent a swap request for "It Ends With Us" in exchange for "The Alchemist."',
-        "status": "outgoing"
-      },
-      {
-        "id": "5",
-        "name": "Dana Khaled",
-        "imagePath": "assets/images/profilePic1.png",
-        "requestMessage":
-            'Swap request completed for "The Seven Husbands of Evelyn Hugo" and "Ugly Love".',
-        "status": "archived"
-      },
-      {
-        "id": "6",
-        "name": "Layla Hamdan",
-        "imagePath": "assets/images/profilePic2.png",
-        "requestMessage":
-            'Swap declined: "Where the Crawdads Sing" for "A Good Girl’s Guide to Murder".',
-        "status": "archived"
-      },
-    ];
-
-    return mockData
-        .where((item) => item['status'] == type)
-        .map((json) => SwapRequest.fromJson(json))
-        .toList();
   }
 }
 
@@ -104,7 +43,9 @@ class SwapRequestsScreen extends StatelessWidget {
           elevation: 0,
           leading: IconButton(
               icon: Icon(Icons.arrow_back, color: Color(0xFF562B56)),
-              onPressed: () {}),
+              onPressed: () {
+                Navigator.of(context).pop();
+              }),
           title: Text(
             'Swap requests',
             style: TextStyle(
@@ -144,25 +85,30 @@ class SwapRequestsScreen extends StatelessWidget {
 // ===== REQUEST TAB HANDLER =====
 class RequestTab extends StatelessWidget {
   final String type;
-  final service = SwapRequestService();
 
   RequestTab({required this.type});
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<SwapRequest>>(
-      future: service.fetchRequests(type),
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('swaps')
+          .where('status', isEqualTo: type)
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
               child: CircularProgressIndicator(color: Color(0xFF562B56)));
         } else if (snapshot.hasError) {
           return Center(child: Text("Error loading $type requests"));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+        } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return Center(child: Text("No $type requests"));
         }
 
-        final requests = snapshot.data!;
+        final requests = snapshot.data!.docs
+            .map((doc) => SwapRequest.fromFirestore(doc))
+            .toList();
+
         return ListView.builder(
           padding: EdgeInsets.all(16),
           itemCount: requests.length,
@@ -206,7 +152,7 @@ class IncomingRequestWidget extends StatelessWidget {
       children: [
         InkWell(
           onTap: () {
-            context.go('/request-details');
+            context.go('/request-details/${request.id}');
           },
           child: Row(
             children: [
