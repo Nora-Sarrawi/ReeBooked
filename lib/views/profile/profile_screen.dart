@@ -229,15 +229,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: ClipOval(
               child: _isEditingImage
                   ? GestureDetector(
-                      onTap: () => setState(() => _isEditingImage = false),
-                      child: Icon(Icons.camera_alt,
-                          size: 40, color: AppColors.secondary),
-                    )
+                      /* … camera icon … */
+                      )
                   : (data['avatarUrl'] != null &&
                           data['avatarUrl'].toString().isNotEmpty)
                       ? Image.network(data['avatarUrl'], fit: BoxFit.cover)
-                      : Image.asset('assets/images/profile.png',
-                          fit: BoxFit.cover),
+                      : Container(
+                          color: Colors.grey[200], // light background
+                          child: Center(
+                            child: Icon(
+                              Icons.person_outline,
+                              size: 48,
+                              color: Colors.grey[500],
+                            ),
+                          ),
+                        ),
             ),
           ),
           Positioned(
@@ -249,7 +255,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: IconButton(
                 icon: Icon(Icons.edit, size: 16, color: AppColors.accent),
                 onPressed: () {
-                  // this is where we pick + upload
                   _pickAndUploadAvatar(uid);
                 },
               ),

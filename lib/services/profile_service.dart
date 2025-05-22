@@ -23,6 +23,14 @@ class ProfileService {
     }
   }
 
+  /// Upload avatar and return the download URL
+  Future<String> uploadAvatar(String uid, XFile pick) async {
+    final ref = _storage
+        .ref('avatars/$uid/${DateTime.now().millisecondsSinceEpoch}.jpg');
+    await ref.putFile(File(pick.path));
+    return await ref.getDownloadURL();
+  }
+
   /// Realtime stream of the profile data
   Stream<DocumentSnapshot<Map<String, dynamic>>> stream(String uid) =>
       _db.collection('users').doc(uid).snapshots();
@@ -30,12 +38,4 @@ class ProfileService {
   /// Patch update
   Future<void> update(String uid, Map<String, dynamic> data) =>
       _db.collection('users').doc(uid).update(data);
-
-  /// Upload avatar, return its download URL
-  Future<String> uploadAvatar(String uid, XFile pick) async {
-    final ref = _storage
-        .ref('avatars/$uid/${DateTime.now().millisecondsSinceEpoch}.jpg');
-    await ref.putFile(File(pick.path));
-    return await ref.getDownloadURL();
-  }
 }
