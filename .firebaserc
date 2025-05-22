@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "rebooked-8fe1e"
-  }
+    "default": "rebooked-8fe1e",
+    "rebooked": "rebooked-8fe1e"
+  },
+  "targets": {},
+  "etags": {}
 }

@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:rebooked_app/providers/swap_provider.dart';
 import 'package:rebooked_app/views/auth/login_screen.dart';
-import 'package:rebooked_app/views/auth/reset_password/reset_password_screen1.dart';
+import 'package:rebooked_app/views/auth/reset_password/password_screen1.dart';
 import 'package:rebooked_app/views/auth/signup_screen.dart';
 
 import 'package:rebooked_app/views/books/add_book_screen.dart';
@@ -12,6 +12,7 @@ import 'package:rebooked_app/views/home/home_screen.dart';
 import 'package:rebooked_app/views/requests/requests_screen.dart';
 import 'package:rebooked_app/views/settings/settings_screen.dart';
 import 'package:rebooked_app/views/start_page/start_page.dart';
+import 'package:rebooked_app/views/swaps/confirm_swap.dart';
 import 'package:rebooked_app/views/swaps/swap_request_screen.dart';
 import 'package:rebooked_app/views/my_books/my_books_screen.dart';
 import 'package:rebooked_app/views/notifications/notifications_screen.dart';

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:rebooked_app/core/theme.dart';
-import 'package:rebooked_app/views/auth/reset_password/reset_password_screen2.dart';
 import 'package:rebooked_app/widgets/primary_button.dart';
+import 'package:rebooked_app/services/auth_service.dart';
 
 class ResetPasswordScreen1 extends StatelessWidget {
   const ResetPasswordScreen1({super.key});
@@ -12,6 +11,9 @@ class ResetPasswordScreen1 extends StatelessWidget {
     final theme = Theme.of(context);
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
+
+    final TextEditingController emailController = TextEditingController();
+    final authService = AuthService();
 
     return Scaffold(
       body: SafeArea(
@@ -29,7 +31,9 @@ class ResetPasswordScreen1 extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.arrow_back),
                       color: AppColors.secondary,
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
                     ),
                     SizedBox(width: screenWidth * 0.02),
                     Text(
@@ -53,6 +57,7 @@ class ResetPasswordScreen1 extends StatelessWidget {
                     ),
                     SizedBox(height: screenHeight * 0.04),
                     TextField(
+                      controller: emailController,
                       keyboardType: TextInputType.emailAddress,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w300,
@@ -88,8 +93,63 @@ class ResetPasswordScreen1 extends StatelessWidget {
                       child: PrimaryButton(
                         text: 'Send Code',
                         color: AppColors.secondary,
-                        onPressed: () {
-                          context.go('reset-password2');
+                        onPressed: () async {
+                          final email = emailController.text.trim();
+
+                          if (email.isEmpty) {
+                            showDialog(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                title: Text('Error',style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.secondary.withOpacity(0.8), )),
+                                content: Text('Please enter your email address.'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    child: Text('OK',style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: AppColors.secondary.withOpacity(0.8), )),
+                                  ),
+                                ],
+                              ),
+                            );
+                            return;
+                          }
+
+                          try {
+                            await authService.sendPasswordResetEmail(email);
+                            showDialog(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                title: Text('Check your email'),
+                                content: Text('A password reset link has been sent to your email.' , style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.secondary.withOpacity(0.8), ),),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    child: Text('OK',style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: AppColors.secondary.withOpacity(0.8), )),
+                                  ),
+                                ],
+                              ),
+                            );
+                          } catch (e) {
+                            showDialog(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                title: Text('Error',style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.secondary.withOpacity(0.8), )),
+                                content: Text('Something went wrong. Please try again later.' ,style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.secondary.withOpacity(0.8), )),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(),
+                                    child: Text('OK' ,style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: AppColors.secondary.withOpacity(0.8), )),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
                         },
                       ),
                     ),
