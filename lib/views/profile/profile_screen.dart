@@ -177,7 +177,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           elevation: 2,
           color: AppColors.texe_field_background,
           child: ListTile(
-            title: Text('$label:',
+            title: Text('$label',
                 style: TextStyle(
                     fontWeight: FontWeight.bold, color: AppColors.secondary)),
             subtitle: editing
