@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '/services/auth_service.dart';
 
 class CreateAccountScreen extends StatefulWidget {
@@ -240,7 +241,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                  onTap: () {
+                    context.go('/login');
+                  },
                   child: const Text(
                     'Sign in',
                     style: TextStyle(
