@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../services/profile_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -11,6 +12,10 @@ class AuthService {
         email: email,
         password: password,
       );
+      if (result.user != null) {
+        // create /users/{uid} profile doc on first sign-up
+        await ProfileService().createIfMissing(result.user!);
+      }
       return result.user;
     } on FirebaseAuthException catch (e) {
       throw e.message ?? 'Sign-up failed';
@@ -24,6 +29,12 @@ class AuthService {
         email: email,
         password: password,
       );
+
+      if (result.user != null) {
+        // ensure profile doc exists even if the user registered elsewhere
+        await ProfileService().createIfMissing(result.user!);
+      }
+
       return result.user;
     } on FirebaseAuthException catch (e) {
       throw e.message ?? 'Sign-in failed';
@@ -44,6 +55,9 @@ class AuthService {
       );
 
       final result = await _auth.signInWithCredential(credential);
+      if (result.user != null) {
+        await ProfileService().createIfMissing(result.user!);
+      }
       return result.user;
     } catch (e) {
       throw e.toString();

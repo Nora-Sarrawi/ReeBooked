@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:rebooked_app/core/theme.dart';
-import 'package:rebooked_app/views/auth/reset_password/reset_Password_screen1.dart';
+import 'package:rebooked_app/views/auth/reset_password/Password_screen1.dart';
 import 'package:rebooked_app/views/auth/reset_password/reset_password_screen3.dart';
 import '../../../widgets/primary_button.dart';
 
