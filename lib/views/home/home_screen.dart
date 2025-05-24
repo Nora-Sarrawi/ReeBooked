@@ -6,7 +6,7 @@ import '../../core/theme.dart'; // AppColors, appTheme
 import '../../core/constants.dart'; // AppPadding
 
 /* ────────────────────────────────────────────────────────────── */
-/*  Model + dummy seed                                           */
+/*  Model                                                         */
 /* ────────────────────────────────────────────────────────────── */
 
 enum BookStatus { available, requested, onLoan }
@@ -148,7 +148,7 @@ class HomeScreen extends StatelessWidget {
 }
 
 /*─────────────────────────────────────────────────────────────────────────────*/
-/*  Header with REAL search bar                                                */
+/*  Header with search bar                                                     */
 /*─────────────────────────────────────────────────────────────────────────────*/
 
 class _Header extends StatefulWidget {
@@ -197,16 +197,15 @@ class _HeaderState extends State<_Header> {
             ),
           ),
         ),
-        const SizedBox(height: 20), // slimmer gap than before
+        const SizedBox(height: 20),
       ],
     );
   }
 }
 
 /*─────────────────────────────────────────────────────────────────────────────*/
-/*  Row with three filter chips                                               */
+/*  Row with 2 filter chips                                                    */
 /*─────────────────────────────────────────────────────────────────────────────*/
-
 class _FilterRow extends StatefulWidget {
   const _FilterRow({Key? key}) : super(key: key);
 
@@ -215,34 +214,46 @@ class _FilterRow extends StatefulWidget {
 }
 
 class _FilterRowState extends State<_FilterRow> {
-  final _genres = ['Genre', 'Romance', 'Fantasy', 'Mystery'];
-  final _authors = ['Author', 'Lucy', 'Carley', 'Unknown'];
-  final _locations = ['Location', 'Library', 'Amman', 'Nablus'];
+  final _genres = [
+    'Genre',
+    'Storytelling',
+    'Truth',
+    'Imagination',
+    'Wisdom',
+    'Growth'
+  ];
+  final _locations = [
+    'Location',
+    'Jerusalem',
+    'Ramallah',
+    'Nablus',
+    'Hebron',
+    'Bethlehem',
+    'Jenin'
+  ];
 
   String _gSel = 'Genre';
-  String _aSel = 'Author';
   String _lSel = 'Location';
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _DropdownChip(
-          value: _gSel,
-          items: _genres,
-          onChanged: (v) => setState(() => _gSel = v),
+        // each Expanded gets half the available width
+        Expanded(
+          child: _DropdownChip(
+            value: _gSel,
+            items: _genres,
+            onChanged: (v) => setState(() => _gSel = v),
+          ),
         ),
         const SizedBox(width: 12),
-        _DropdownChip(
-          value: _aSel,
-          items: _authors,
-          onChanged: (v) => setState(() => _aSel = v),
-        ),
-        const SizedBox(width: 12),
-        _DropdownChip(
-          value: _lSel,
-          items: _locations,
-          onChanged: (v) => setState(() => _lSel = v),
+        Expanded(
+          child: _DropdownChip(
+            value: _lSel,
+            items: _locations,
+            onChanged: (v) => setState(() => _lSel = v),
+          ),
         ),
       ],
     );
@@ -250,9 +261,7 @@ class _FilterRowState extends State<_FilterRow> {
 }
 
 /*─────────────────────────────────────────────────────────────────────────────*/
-/*  Purple pill built with dropdown_button2 (v2.x)                            */
-/*  – arrow sits right next to text                                           */
-/*  – popup has square top corners                                            */
+/*  DropdownChips                                                              */
 /*─────────────────────────────────────────────────────────────────────────────*/
 class _DropdownChip extends StatefulWidget {
   const _DropdownChip({
@@ -260,7 +269,7 @@ class _DropdownChip extends StatefulWidget {
     required this.value,
     required this.items,
     required this.onChanged,
-    this.width = 110,
+    this.width = 185,
   }) : super(key: key);
 
   final String value;
@@ -281,13 +290,13 @@ class _DropdownChipState extends State<_DropdownChip> {
       width: widget.width,
       child: DropdownButtonHideUnderline(
         child: DropdownButton2<String>(
-          // ───── model ─────
+          // model
           value: widget.value,
           isExpanded: true,
           onMenuStateChange: (open) => setState(() => _menuOpen = open),
           onChanged: (v) => widget.onChanged(v!),
 
-          /*────────── 100 % custom pill (⇢ arrow gap under your control) ─────────*/
+          //100 % custom pill
           customButton: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
@@ -310,7 +319,7 @@ class _DropdownChipState extends State<_DropdownChip> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 4), // <── tighter gap
+                const SizedBox(width: 4),
                 AnimatedRotation(
                   turns: _menuOpen ? 0.25 : 0,
                   duration: const Duration(milliseconds: 150),
@@ -321,7 +330,7 @@ class _DropdownChipState extends State<_DropdownChip> {
             ),
           ),
 
-          /*────────── dropdown (overlay) ─────────*/
+          // dropdown (overlay)
           dropdownStyleData: DropdownStyleData(
             width: widget.width,
             maxHeight: 220,
@@ -329,7 +338,7 @@ class _DropdownChipState extends State<_DropdownChip> {
             decoration: BoxDecoration(
               color: AppColors.primary.withOpacity(.85),
               borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(25), // bottom only  ➜ square top
+                  bottomLeft: Radius.circular(25),
                   bottomRight: Radius.circular(25),
                   topLeft: Radius.circular(25),
                   topRight: Radius.circular(25)),
@@ -338,7 +347,7 @@ class _DropdownChipState extends State<_DropdownChip> {
           menuItemStyleData:
               const MenuItemStyleData(padding: EdgeInsets.zero, height: 44),
 
-          /*────────── items ─────────*/
+          //items
           items: widget.items.map((txt) {
             final last = txt == widget.items.last;
             return DropdownMenuItem<String>(
@@ -369,7 +378,7 @@ class _DropdownChipState extends State<_DropdownChip> {
 }
 
 /*─────────────────────────────────────────────────────────────────────────────*/
-/*  Book Card                           */
+/*  Book Card                                                                  */
 /*─────────────────────────────────────────────────────────────────────────────*/
 
 class _BookCard extends StatelessWidget {
@@ -477,7 +486,7 @@ class _BookCard extends StatelessWidget {
                 ),
 
                 const SizedBox(height: 8),
-                // New: location & genre
+                // location & genre
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Row(
@@ -497,7 +506,7 @@ class _BookCard extends StatelessWidget {
                 ),
 
                 const Spacer(),
-                // New: status badge
+                // status badge
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
