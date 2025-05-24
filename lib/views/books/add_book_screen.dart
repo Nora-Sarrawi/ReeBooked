@@ -1,6 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:rebooked_app/core/theme.dart';
 import 'package:rebooked_app/widgets/primary_button.dart';
+import 'package:rebooked_app/services/storage_service.dart'; // Make sure this exists
 
 class AddBookScreen extends StatefulWidget {
   const AddBookScreen({super.key});
@@ -16,10 +22,47 @@ class _AddBookScreenState extends State<AddBookScreen> {
   final TextEditingController _publishYearController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
-  String? _imagePath;
 
-  void _saveBook() {
-    if (_formKey.currentState?.validate() ?? false) {
+  final _picker = ImagePicker();
+  final _storage = StorageService(); // Your own service for Firebase Storage
+  File? _pickedImageFile;
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _pickedImageFile = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _saveBook() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_pickedImageFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please pick an image")),
+      );
+      return;
+    }
+
+    try {
+      final newBookRef = FirebaseFirestore.instance.collection('books').doc();
+
+      final coverUrl = await _storage.uploadFile(_pickedImageFile!,
+          'book_covers/${FirebaseAuth.instance.currentUser!.uid}/${newBookRef.id}.jpg');
+
+      await newBookRef.set({
+        'title': _titleController.text.trim(),
+        'author': _authorController.text.trim(),
+        'coverUrl': coverUrl,
+        'ownerId': FirebaseAuth.instance.currentUser!.uid,
+        'status': 'available',
+        'createdAt': FieldValue.serverTimestamp(),
+        'publishYear': _publishYearController.text.trim(),
+        'description': _descriptionController.text.trim(),
+        'notes': _notesController.text.trim(),
+      });
+
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
@@ -35,35 +78,34 @@ class _AddBookScreenState extends State<AddBookScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
+                context.go('/home');
               },
-              child: const Text(
-                'OK',
-                style: TextStyle(color: AppColors.secondary),
-              ),
+              child: const Text('OK',
+                  style: TextStyle(color: AppColors.secondary)),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
+                _formKey.currentState?.reset();
+                setState(() {
+                  _pickedImageFile = null;
+                });
               },
-              child: const Text(
-                'Add Another',
-                style: TextStyle(color: AppColors.secondary),
-              ),
+              child: const Text('Add Another',
+                  style: TextStyle(color: AppColors.secondary)),
             ),
           ],
         ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
       );
     }
   }
 
   void _cancel() {
-    Navigator.pop(context);
-  }
-
-  Future<void> _pickImage() async {
-    setState(() {
-      _imagePath = 'path/to/image.jpg';
-    });
+    context.go('/home');
   }
 
   @override
@@ -93,13 +135,12 @@ class _AddBookScreenState extends State<AddBookScreen> {
                       bottom: screenHeight * 0.02,
                     ),
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         IconButton(
                           icon: const Icon(Icons.arrow_back),
                           color: AppColors.secondary,
                           onPressed: () {
-                            Navigator.pop(context);
+                            context.go('/home');
                           },
                         ),
                         SizedBox(width: screenWidth * 0.02),
@@ -114,8 +155,6 @@ class _AddBookScreenState extends State<AddBookScreen> {
                       ],
                     ),
                   ),
-                  SizedBox(height: screenHeight * 0.02),
-                  // Wrap the image in a Center widget to keep it centered
                   GestureDetector(
                     onTap: _pickImage,
                     child: Center(
@@ -126,7 +165,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
                           color: Colors.grey[200],
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: _imagePath == null
+                        child: _pickedImageFile == null
                             ? Center(
                                 child: Text(
                                   'Pick an Image',
@@ -135,13 +174,11 @@ class _AddBookScreenState extends State<AddBookScreen> {
                                   ),
                                 ),
                               )
-                            : Center(
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Image.asset(
-                                    _imagePath!,
-                                    fit: BoxFit.cover,
-                                  ),
+                            : ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: Image.file(
+                                  _pickedImageFile!,
+                                  fit: BoxFit.cover,
                                 ),
                               ),
                       ),
@@ -157,7 +194,6 @@ class _AddBookScreenState extends State<AddBookScreen> {
                   ),
                   SizedBox(height: screenHeight * 0.02),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Expanded(
                         child: _buildLabeledTextField(
@@ -201,7 +237,6 @@ class _AddBookScreenState extends State<AddBookScreen> {
                   ),
                   SizedBox(height: screenHeight * 0.04),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Expanded(
                         child: PrimaryButton(
