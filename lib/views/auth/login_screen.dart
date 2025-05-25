@@ -4,10 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:rebooked_app/views/auth/signup_screen.dart';
 import 'package:rebooked_app/views/home/home_screen.dart';
 import '/services/auth_service.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:rebooked_app/providers/user_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -31,9 +27,6 @@ class _LoginPageState extends State<LoginPage> {
       final user = await AuthService().signInWithEmail(email, password);
 
       if (user != null) {
-        // 🔐 Save FCM token to Firestore
-        await _saveTokenToFirestore(user);
-
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login successful!')),
         );
@@ -49,25 +42,6 @@ class _LoginPageState extends State<LoginPage> {
       );
     } finally {
       setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _saveTokenToFirestore(User user) async {
-    final fcm = FirebaseMessaging.instance;
-    final token = await fcm.getToken();
-
-    if (token != null) {
-      final tokensRef = FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('tokens')
-          .doc(token);
-
-      await tokensRef.set({
-        'token': token,
-        'createdAt': FieldValue.serverTimestamp(),
-        'platform': Theme.of(context).platform.toString(),
-      });
     }
   }
 
@@ -88,6 +62,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
           child: Stack(
             children: [
+              // Logo/Image
               Positioned(
                 left: 109,
                 top: 158,
@@ -103,6 +78,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
+
               Positioned(
                 left: 154,
                 top: 308,
@@ -226,18 +202,18 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                Color(0xFFF2E9DC)),
-                          )
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xFFF2E9DC)),
+                    )
                         : const Text(
-                            'Login now',
-                            style: TextStyle(
-                              color: Color(0xFFF2E9DC),
-                              fontSize: 16,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                      'Login now',
+                      style: TextStyle(
+                        color: Color(0xFFF2E9DC),
+                        fontSize: 16,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -250,7 +226,7 @@ class _LoginPageState extends State<LoginPage> {
                   height: 32,
                   child: TextButton(
                     onPressed: () {
-                      // Add password reset logic
+                      // Add password reset logic or navigation here
                     },
                     child: const Text(
                       'Forgot your password?',
@@ -297,8 +273,7 @@ class _LoginPageState extends State<LoginPage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) =>
-                                        const CreateAccountScreen()),
+                                    builder: (context) => const CreateAccountScreen()),
                               );
                             },
                         ),

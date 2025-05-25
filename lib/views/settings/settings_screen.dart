@@ -1,9 +1,98 @@
 import 'package:flutter/material.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
-import 'package:rebooked_app/views/profile/profile_screen.dart';
 
 class SettingsPage extends StatelessWidget {
+  const SettingsPage({super.key});
+
+
+  Future<void> deleteFirebaseUser(BuildContext context) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final success = await reauthenticateUser(context);
+        if (success) {
+
+          await FirebaseFirestore.instance.collection('users').doc(user.uid).delete();
+
+
+          await user.delete();
+
+
+          await FirebaseAuth.instance.signOut();
+
+
+          if (context.mounted) {
+            context.go('/start');
+          }
+        }
+      }
+    } catch (e) {
+      print('Error during deletion: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error during deletion: $e')),
+        );
+      }
+    }
+  }
+
+
+
+  Future<bool> reauthenticateUser(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null && user.email != null) {
+      try {
+        final password = await _promptForPassword(context);
+        if (password == null) return false;
+
+        final credential = EmailAuthProvider.credential(
+          email: user.email!,
+          password: password,
+        );
+
+        await user.reauthenticateWithCredential(credential);
+        return true;
+      } catch (e) {
+        print('Reauthentication error: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Incorrect password.')),
+        );
+        return false;
+      }
+    }
+    return false;
+  }
+
+  Future<String?> _promptForPassword(BuildContext context) async {
+    String? password;
+    return await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Enter your password'),
+          content: TextField(
+            obscureText: true,
+            onChanged: (value) => password = value,
+            decoration: InputDecoration(labelText: 'Password'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(null),
+              child: Text('Cancel' , style: TextStyle(color: Color(0xFF562B56)),),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(password),
+              child: Text('Delete', style: TextStyle(color: Color(0xFF562B56)),),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -11,7 +100,6 @@ class SettingsPage extends StatelessWidget {
       body: SafeArea(
         child: Stack(
           children: [
-            // Top bar with back arrow and Settings title
             Positioned(
               left: 16,
               top: 16,
@@ -39,8 +127,6 @@ class SettingsPage extends StatelessWidget {
                 ],
               ),
             ),
-
-            // Account Settings title
             Positioned(
               top: 105,
               left: 36,
@@ -54,21 +140,16 @@ class SettingsPage extends StatelessWidget {
                 ),
               ),
             ),
-
-            // List of settings
             Positioned(
               top: 160,
               left: 16,
               right: 16,
               child: Column(
                 children: [
-                  _buildSettingRow(
-                      Icons.lock_outline, 'Change Password', context),
-                  _buildSettingRow(
-                      Icons.key_outlined, 'Forgot Password', context),
+                  _buildSettingRow(Icons.lock_outline, 'Change Password', context),
+                  _buildSettingRow(Icons.key_outlined, 'Forgot Password', context),
                   _buildSettingRow(Icons.logout, 'Logout', context),
-                  _buildSettingRow(
-                      Icons.delete_outline, 'Delete Account', context),
+                  _buildSettingRow(Icons.delete_outline, 'Delete Account', context),
                 ],
               ),
             ),
@@ -96,18 +177,13 @@ class SettingsPage extends StatelessWidget {
             ),
             onTap: () {
               if (title == 'Delete Account') {
-                _showDeleteConfirmation(context);
-              }
-              if (title == 'Delete Account') {
-                _showDeleteConfirmation(context);
+                deleteFirebaseUser(context);
               } else if (title == 'Forgot Password') {
-                context
-                    .go('/forgot-password'); // Change this to your actual route
+                context.go('/forgot-password');
               } else if (title == 'Logout') {
-                context.go('/Login'); // Change this to your actual route
+                FirebaseAuth.instance.signOut();
+                context.go('/login');
               }
-              
-              
             },
           ),
           Container(
@@ -120,128 +196,5 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(32),
-            decoration: ShapeDecoration(
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  width: 1,
-                  color: Colors.black.withOpacity(0.1),
-                ),
-              ),
-              shadows: [
-                BoxShadow(
-                  color: Color(0x14000000),
-                  blurRadius: 20,
-                  offset: Offset(20, 20),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Are you sure you want to delete your account?',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Color(0xFF562B56),
-                    fontSize: 24,
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                SizedBox(height: 20),
-                Opacity(
-                  opacity: 0.56,
-                  child: Text(
-                    'This action cannot be undone.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xFF562B56),
-                      fontSize: 16,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w400,
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 40),
-                Row(
-                  children: [
-                    // Delete button
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).pop();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Account deleted")),
-                          );
-                          context.go('/Signup');
-                        },
-                        child: Container(
-                          height: 48,
-                          decoration: ShapeDecoration(
-                            color: Color(0xFFCDA2F2),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25),
-                              side: BorderSide(color: Color(0xFFCDA2F2)),
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            'Delete',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 16),
-                    // Cancel button
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => Navigator.of(context).pop(),
-                        child: Container(
-                          height: 48,
-                          decoration: ShapeDecoration(
-                            color: Color(0xFF562B56),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(25),
-                              side: BorderSide(color: Color(0xFF562B56)),
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            'Cancel',
-                            style: TextStyle(
-                              color: Color(0xFFF5F5F5),
-                              fontSize: 16,
-                              fontFamily: 'Inter',
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+
 }
