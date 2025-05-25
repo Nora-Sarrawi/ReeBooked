@@ -76,7 +76,14 @@ final GoRouter router = GoRouter(
     GoRoute(path: '/settings', builder: (_, __) => SettingsPage()),
     GoRoute(path: '/add-book', builder: (_, __) => AddBookScreen()),
     GoRoute(path: '/confirm', builder: (_, __) => ConfirmSwapPage()),
-    GoRoute(path: '/bookDetails', builder: (_, __) => BookDetailsScreen()),
+GoRoute(
+  path: '/book/:bookId',
+  name: 'bookDetails',
+  builder: (context, state) {
+    final bookId = state.pathParameters['bookId']!;
+    return BookDetailsScreen(bookId: bookId);
+  },
+),
     GoRoute(
         path: '/forgot-password', builder: (_, __) => ResetPasswordScreen1()),
     GoRoute(path: '/Login', builder: (_, __) => LoginPage()),

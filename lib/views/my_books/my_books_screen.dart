@@ -3,18 +3,27 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/theme.dart'; // يحتوي على AppColors
-import '../../core/constants.dart'; // يحتوي على AppPadding
+import '../../core/theme.dart'; // Contains AppColors
+import '../../core/constants.dart'; // Contains AppPadding
 
+// ✅ Updated Book model with 'id'
 class Book {
+  final String id;
   final String coverUrl;
   final String title;
   final String author;
 
-  Book({required this.coverUrl, required this.title, required this.author});
+  Book({
+    required this.id,
+    required this.coverUrl,
+    required this.title,
+    required this.author,
+  });
 
-  factory Book.fromMap(Map<String, dynamic> data) {
+  factory Book.fromDocument(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
     return Book(
+      id: doc.id,
       coverUrl: data['coverUrl'] ?? '',
       title: data['title'] ?? '',
       author: data['author'] ?? '',
@@ -47,9 +56,7 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
         .where('ownerId', isEqualTo: user.uid)
         .get();
 
-    return querySnapshot.docs
-        .map((doc) => Book.fromMap(doc.data()))
-        .toList();
+    return querySnapshot.docs.map((doc) => Book.fromDocument(doc)).toList();
   }
 
   @override
@@ -100,7 +107,10 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
                             title: book.title,
                             author: book.author,
                             onPressed: () {
-                              context.go('/bookDetails', extra: book);
+                              context.pushNamed(
+                                'bookDetails',
+                                pathParameters: {'bookId': book.id},
+                              );
                             },
                           );
                         },
@@ -128,8 +138,11 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
 }
 
 class _Header extends StatelessWidget {
-  const _Header(
-      {required this.logoW, required this.logoH, required this.onSearch});
+  const _Header({
+    required this.logoW,
+    required this.logoH,
+    required this.onSearch,
+  });
 
   final double logoW, logoH;
   final Function(String) onSearch;
@@ -226,7 +239,7 @@ class _BookCard extends StatelessWidget {
                   width: 100,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
-                  const Icon(Icons.broken_image, size: 100),
+                      const Icon(Icons.broken_image, size: 100),
                 ),
               ),
             ),
@@ -257,7 +270,7 @@ class _BookCard extends StatelessWidget {
 class _EmptyBooksWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Text(
         "You don't have any books yet.",
         style: TextStyle(
