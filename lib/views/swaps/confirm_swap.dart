@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:rebooked_app/core/theme.dart';
 import 'package:rebooked_app/widgets/primary_button.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ConfirmSwapPage extends StatefulWidget {
   const ConfirmSwapPage({super.key});
@@ -14,14 +16,32 @@ class ConfirmSwapPage extends StatefulWidget {
 class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
   String? selectedBook;
 
+  Future<void> sendSwapRequest() async {
+    if (selectedBook == null) return;
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final swapData = {
+      'name': 'OCEAN DOOR',
+      'imagePath': 'assets/images/book3.jpg',
+      'requestMessage': "I'd like to swap my '$selectedBook' for your 'OCEAN DOOR'",
+      'status': 'pending',
+      'borrowerId': user.uid,
+      'ownerId': 'TARGET_USER_ID', // <-- Replace with actual target user ID
+      'timestamp': FieldValue.serverTimestamp(),
+    };
+
+    await FirebaseFirestore.instance.collection('swaps').add(swapData);
+  }
+
   void showSuccessDialog(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -33,16 +53,17 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
                   'The request has been sent successfully',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.secondary),
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.secondary,
+                  ),
                 ),
                 SizedBox(height: 24),
                 PrimaryButton(
                   text: 'Thanks',
                   onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(); // close dialog
+                    Navigator.of(context).pop(); // go back
                   },
                 ),
               ],
@@ -106,7 +127,7 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
                     dropdownColor: AppColors.primary,
                     iconEnabledColor: Colors.white,
                     isExpanded: true,
-                    borderRadius: BorderRadius.circular(25), // يغير شكل الليست
+                    borderRadius: BorderRadius.circular(25),
                     items: ConfirmSwapPage.books.map((String book) {
                       return DropdownMenuItem<String>(
                         value: book,
@@ -180,7 +201,8 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
                           child: SizedBox(
                             height: screenHeight * 0.06,
                             child: ElevatedButton(
-                              onPressed: () {
+                              onPressed: () async {
+                                await sendSwapRequest();
                                 showSuccessDialog(context);
                               },
                               style: ElevatedButton.styleFrom(
@@ -212,8 +234,7 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
                               },
                               style: OutlinedButton.styleFrom(
                                 backgroundColor: AppColors.gray,
-                                side:
-                                    const BorderSide(color: Color(0xFFD1D1D6)),
+                                side: const BorderSide(color: Color(0xFFD1D1D6)),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(25),
                                 ),
