@@ -6,7 +6,7 @@ class AppColors {
   static const Color accent = Color(0xFFCDA2F2);
   static const Color yellow = Color(0xFFF7C873);
   static const Color beige = Color(0xFFF2E9DC);
-  static const Color background = Color(0xFFFDF8FD);
+  static const Color background = Color.fromARGB(255, 255, 255, 255);
   static const Color texe_field_background = Color.fromARGB(255, 251, 236, 251);
   static const Color gray = Color(0xFFD1D1D6);
 }

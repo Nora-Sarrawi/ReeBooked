@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:rebooked_app/core/theme.dart';
 import 'package:rebooked_app/views/auth/reset_password/reset_password_screen2.dart';
 import 'package:rebooked_app/widgets/primary_button.dart';
@@ -28,8 +29,7 @@ class ResetPasswordScreen1 extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.arrow_back),
                       color: AppColors.secondary,
-                      onPressed: () {
-                      },
+                      onPressed: () {},
                     ),
                     SizedBox(width: screenWidth * 0.02),
                     Text(
@@ -89,12 +89,8 @@ class ResetPasswordScreen1 extends StatelessWidget {
                         text: 'Send Code',
                         color: AppColors.secondary,
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => ResetPasswordScreen2()),
-                          );
+                          context.go('reset-password2');
                         },
-
                       ),
                     ),
                   ],
