@@ -202,18 +202,18 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                Color(0xFFF2E9DC)),
-                          )
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xFFF2E9DC)),
+                    )
                         : const Text(
-                            'Login now',
-                            style: TextStyle(
-                              color: Color(0xFFF2E9DC),
-                              fontSize: 16,
-                              fontFamily: 'Poppins',
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+                      'Login now',
+                      style: TextStyle(
+                        color: Color(0xFFF2E9DC),
+                        fontSize: 16,
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -288,5 +288,6 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-}
 
+}
+ 

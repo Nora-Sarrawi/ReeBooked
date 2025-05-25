@@ -1,0 +1,2 @@
+C:/Users/X/ReeBooked/android/app/.cxx/Debug/6d636221/x86/CMakeFiles/edit_cache.dir
+C:/Users/X/ReeBooked/android/app/.cxx/Debug/6d636221/x86/CMakeFiles/rebuild_cache.dir
