@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../shell/shell_scaffold.dart';
 
 class StartScreen extends StatelessWidget {
   const StartScreen({super.key});
@@ -22,7 +24,7 @@ class StartScreen extends StatelessWidget {
           children: [
             // Logo
             Positioned(
-              top: size.height * 0.12,
+              top: size.height * 0.20,
               left: (size.width - logoW) / 2,
               child: Container(
                 width: logoW,
@@ -48,7 +50,6 @@ class StartScreen extends StatelessWidget {
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: titleF,
-                    fontFamily: 'Inter',
                     fontWeight: FontWeight.w400,
                     height: 1,
                   ),
@@ -67,8 +68,7 @@ class StartScreen extends StatelessWidget {
                   'Where every book gets a second story',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: tagF,
-                    fontFamily: 'Inter',
+                    fontSize: 20,
                     fontWeight: FontWeight.w400,
                   ),
                   textAlign: TextAlign.center,
@@ -78,13 +78,16 @@ class StartScreen extends StatelessWidget {
 
             // Button
             Positioned(
-              top: size.height * 0.78,
+              top: size.height * 0.7,
               left: (size.width - btnW) / 2,
               child: SizedBox(
                 width: btnW,
-                height: kMinInteractiveDimension, // 48dp per Material spec
+                height: kMinInteractiveDimension,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.go(
+                        '/signup'); // or whatever route you want to start with
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF7C873),
                     elevation: 0,
