@@ -85,8 +85,8 @@ class StartScreen extends StatelessWidget {
                 height: kMinInteractiveDimension,
                 child: ElevatedButton(
                   onPressed: () {
-                        context.go('/home'); // or whatever route you want to start with
-
+                    context.go(
+                        '/signup'); // or whatever route you want to start with
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF7C873),

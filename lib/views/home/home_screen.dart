@@ -1,15 +1,20 @@
-import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 
-import '../../core/theme.dart'; // AppColors, appTheme
+import '../../core/theme.dart'; // AppColors
 import '../../core/constants.dart'; // AppPadding
 
-/* ────────────────────────────────────────────────────────────── */
-/*  Model + dummy seed                                           */
-/* ────────────────────────────────────────────────────────────── */
+/* ──────────────────────────────────────────────────────────── */
+/*  Model                                                      */
+/* ──────────────────────────────────────────────────────────── */
 
 enum BookStatus { available, requested, onLoan }
+
+BookStatus _statusFromString(String s) => BookStatus.values
+    .firstWhere((e) => e.name == s, orElse: () => BookStatus.available);
 
 class Book {
   final String id;
@@ -33,80 +38,54 @@ class Book {
     required this.genre,
     this.status = BookStatus.available,
   });
+
+  /// Factory to create a Book from Firestore
+  factory Book.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final d = doc.data()!;
+    return Book(
+      id: doc.id,
+      coverPath: d['coverUrl'] ?? '',
+      title: d['title'] ?? 'Untitled',
+      author: d['author'] ?? 'Unknown',
+      ownerName: d['ownerName'] ?? 'Unknown',
+      ownerAvatar: d['ownerAvatarUrl'],
+      location: d['location'] ?? '',
+      genre: d['genre'] ?? '',
+      status: _statusFromString(d['status'] ?? 'available'),
+    );
+  }
 }
 
-const List<Book> kDummyBooks = [
-  Book(
-    id: 'b1',
-    coverPath: 'assets/images/book3.jpg',
-    title: 'Things We Never Got Over',
-    author: 'Lucy Score',
-    ownerName: 'Masa Jaara',
-    ownerAvatar: 'assets/images/book3.jpg',
-    location: 'Amman',
-    genre: 'Romance',
-    status: BookStatus.available,
-  ),
-  Book(
-    id: 'b2',
-    coverPath: 'assets/images/book4.jpg',
-    title: 'This Summer Will Be Different',
-    author: 'Carley',
-    ownerName: 'Alaa Qaqa',
-    location: 'Nablus',
-    genre: 'Mystery',
-    status: BookStatus.requested,
-  ),
-  Book(
-    id: 'b1',
-    coverPath: 'assets/images/book3.jpg',
-    title: 'Things We Never Got Over',
-    author: 'Lucy Score',
-    ownerName: 'Masa Jaara',
-    ownerAvatar: 'assets/images/book3.jpg',
-    location: 'Amman',
-    genre: 'Romance',
-    status: BookStatus.available,
-  ),
-  Book(
-    id: 'b2',
-    coverPath: 'assets/images/book4.jpg',
-    title: 'This Summer Will Be Different',
-    author: 'Carley',
-    ownerName: 'Alaa Qaqa',
-    location: 'Nablus',
-    genre: 'Mystery',
-    status: BookStatus.requested,
-  ),
-  Book(
-    id: 'b1',
-    coverPath: 'assets/images/book3.jpg',
-    title: 'Things We Never Got Over',
-    author: 'Lucy Score',
-    ownerName: 'Masa Jaara',
-    ownerAvatar: 'assets/images/book3.jpg',
-    location: 'Amman',
-    genre: 'Romance',
-    status: BookStatus.available,
-  ),
-  Book(
-    id: 'b2',
-    coverPath: 'assets/images/book4.jpg',
-    title: 'This Summer Will Be Different',
-    author: 'Carley',
-    ownerName: 'Alaa Qaqa',
-    location: 'Nablus',
-    genre: 'Mystery',
-    status: BookStatus.requested,
-  ),
-];
+/* ──────────────────────────────────────────────────────────── */
+/*  Home Screen                                                */
+/* ──────────────────────────────────────────────────────────── */
 
-/* ────────────────────────────────────────────────────────────── */
-/*  Home Screen                                                  */
-/* ────────────────────────────────────────────────────────────── */
-
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final _search = TextEditingController();
+  String _gSel = 'Genre';
+  String _lSel = 'Location';
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  Future<List<Book>> _fetchBooks() async {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    final qs = await FirebaseFirestore.instance
+        .collection('books')
+        .where('ownerId', isNotEqualTo: currentUid)
+        .get();
+    return qs.docs.map(Book.fromDoc).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,28 +96,45 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: ListView.builder(
-          padding: AppPadding.screenPadding.copyWith(bottom: 96),
-          itemCount: kDummyBooks.length + 2, // header + filter row
-          itemBuilder: (ctx, i) {
-            if (i == 0) return _Header(logoW: logoW, logoH: logoH);
-            if (i == 1)
-              return const Padding(
-                  padding: EdgeInsets.only(top: 5), child: _FilterRow());
-
-            final book = kDummyBooks[i - 2];
-            return Padding(
-              padding: const EdgeInsets.only(top: 24),
-              child: _BookCard(
-                coverPath: book.coverPath,
-                title: book.title,
-                author: book.author,
-                ownerName: book.ownerName,
-                ownerAvatar: book.ownerAvatar,
-                location: book.location,
-                genre: book.genre,
-                status: book.status,
-              ),
+        child: FutureBuilder<List<Book>>(
+          future: _fetchBooks(),
+          builder: (context, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snap.hasError || !snap.hasData || snap.data!.isEmpty) {
+              return const Center(child: Text('No books available.'));
+            }
+            final books = snap.data!;
+            return ListView.builder(
+              padding: AppPadding.screenPadding.copyWith(bottom: 96),
+              itemCount: books.length + 2, // header + filters + books
+              itemBuilder: (ctx, i) {
+                if (i == 0)
+                  return _Header(logoW: logoW, logoH: logoH, search: _search);
+                if (i == 1) {
+                  return _FilterRow(
+                    gSel: _gSel,
+                    lSel: _lSel,
+                    onGenre: (v) => setState(() => _gSel = v),
+                    onLoc: (v) => setState(() => _lSel = v),
+                  );
+                }
+                final b = books[i - 2];
+                return Padding(
+                  padding: const EdgeInsets.only(top: 24),
+                  child: _BookCard(
+                    coverPath: b.coverPath,
+                    title: b.title,
+                    author: b.author,
+                    ownerName: b.ownerName,
+                    ownerAvatar: b.ownerAvatar,
+                    location: b.location,
+                    genre: b.genre,
+                    status: b.status,
+                  ),
+                );
+              },
             );
           },
         ),
@@ -147,27 +143,15 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-/*─────────────────────────────────────────────────────────────────────────────*/
-/*  Header with REAL search bar                                                */
-/*─────────────────────────────────────────────────────────────────────────────*/
+/* ──────────────────────────────────────────────────────────── */
+/*  Header                                                     */
+/* ──────────────────────────────────────────────────────────── */
 
-class _Header extends StatefulWidget {
-  const _Header({required this.logoW, required this.logoH});
-
+class _Header extends StatelessWidget {
+  const _Header(
+      {required this.logoW, required this.logoH, required this.search});
   final double logoW, logoH;
-
-  @override
-  State<_Header> createState() => _HeaderState();
-}
-
-class _HeaderState extends State<_Header> {
-  final _search = TextEditingController();
-
-  @override
-  void dispose() {
-    _search.dispose();
-    super.dispose();
-  }
+  final TextEditingController search;
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +159,7 @@ class _HeaderState extends State<_Header> {
       children: [
         const SizedBox(height: 20),
         TextField(
-          controller: _search,
+          controller: search,
           textInputAction: TextInputAction.search,
           onSubmitted: (q) => debugPrint('Search: $q'),
           style: const TextStyle(color: Colors.white, fontSize: 16),
@@ -197,71 +181,73 @@ class _HeaderState extends State<_Header> {
             ),
           ),
         ),
-        const SizedBox(height: 20), // slimmer gap than before
+        const SizedBox(height: 20),
       ],
     );
   }
 }
 
-/*─────────────────────────────────────────────────────────────────────────────*/
-/*  Row with three filter chips                                               */
-/*─────────────────────────────────────────────────────────────────────────────*/
+/* ──────────────────────────────────────────────────────────── */
+/*  Filter row                                                 */
+/* ──────────────────────────────────────────────────────────── */
 
-class _FilterRow extends StatefulWidget {
-  const _FilterRow({Key? key}) : super(key: key);
+class _FilterRow extends StatelessWidget {
+  const _FilterRow({
+    required this.gSel,
+    required this.lSel,
+    required this.onGenre,
+    required this.onLoc,
+  });
 
-  @override
-  State<_FilterRow> createState() => _FilterRowState();
-}
+  final String gSel, lSel;
+  final ValueChanged<String> onGenre, onLoc;
 
-class _FilterRowState extends State<_FilterRow> {
-  final _genres = ['Genre', 'Romance', 'Fantasy', 'Mystery'];
-  final _authors = ['Author', 'Lucy', 'Carley', 'Unknown'];
-  final _locations = ['Location', 'Library', 'Amman', 'Nablus'];
-
-  String _gSel = 'Genre';
-  String _aSel = 'Author';
-  String _lSel = 'Location';
+  static const _genres = [
+    'Genre',
+    'Storytelling',
+    'Truth',
+    'Imagination',
+    'Wisdom',
+    'Growth'
+  ];
+  static const _locations = [
+    'Location',
+    'Jerusalem',
+    'Ramallah',
+    'Nablus',
+    'Hebron',
+    'Bethlehem',
+    'Jenin'
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _DropdownChip(
-          value: _gSel,
-          items: _genres,
-          onChanged: (v) => setState(() => _gSel = v),
-        ),
+        Expanded(
+            child:
+            _DropdownChip(value: gSel, items: _genres, onChanged: onGenre)),
         const SizedBox(width: 12),
-        _DropdownChip(
-          value: _aSel,
-          items: _authors,
-          onChanged: (v) => setState(() => _aSel = v),
-        ),
-        const SizedBox(width: 12),
-        _DropdownChip(
-          value: _lSel,
-          items: _locations,
-          onChanged: (v) => setState(() => _lSel = v),
-        ),
+        Expanded(
+            child: _DropdownChip(
+                value: lSel, items: _locations, onChanged: onLoc)),
       ],
     );
   }
 }
 
-/*─────────────────────────────────────────────────────────────────────────────*/
-/*  Purple pill built with dropdown_button2 (v2.x)                            */
-/*  – arrow sits right next to text                                           */
-/*  – popup has square top corners                                            */
-/*─────────────────────────────────────────────────────────────────────────────*/
+/* ──────────────────────────────────────────────────────────── */
+/*  DropdownChip                                               */
+/* ──────────────────────────────────────────────────────────── */
+
 class _DropdownChip extends StatefulWidget {
   const _DropdownChip({
-    Key? key,
     required this.value,
     required this.items,
     required this.onChanged,
-    this.width = 110,
-  }) : super(key: key);
+    this.width = 185,
+    super.key,
+  });
 
   final String value;
   final List<String> items;
@@ -273,46 +259,36 @@ class _DropdownChip extends StatefulWidget {
 }
 
 class _DropdownChipState extends State<_DropdownChip> {
-  bool _menuOpen = false;
-
+  bool _open = false;
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: widget.width,
       child: DropdownButtonHideUnderline(
         child: DropdownButton2<String>(
-          // ───── model ─────
           value: widget.value,
           isExpanded: true,
-          onMenuStateChange: (open) => setState(() => _menuOpen = open),
+          onMenuStateChange: (o) => setState(() => _open = o),
           onChanged: (v) => widget.onChanged(v!),
-
-          /*────────── 100 % custom pill (⇢ arrow gap under your control) ─────────*/
           customButton: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(25),
-            ),
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(25)),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
               children: [
                 Flexible(
-                  child: Text(
-                    widget.value,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'Montserrat',
-                    ),
-                  ),
+                  child: Text(widget.value,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600)),
                 ),
-                const SizedBox(width: 4), // <── tighter gap
+                const SizedBox(width: 4),
                 AnimatedRotation(
-                  turns: _menuOpen ? 0.25 : 0,
+                  turns: _open ? 0.25 : 0,
                   duration: const Duration(milliseconds: 150),
                   child: const Icon(Icons.arrow_drop_down,
                       size: 22, color: Colors.white),
@@ -320,25 +296,17 @@ class _DropdownChipState extends State<_DropdownChip> {
               ],
             ),
           ),
-
-          /*────────── dropdown (overlay) ─────────*/
           dropdownStyleData: DropdownStyleData(
             width: widget.width,
             maxHeight: 220,
             offset: const Offset(0, 4),
             decoration: BoxDecoration(
               color: AppColors.primary.withOpacity(.85),
-              borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(25), // bottom only  ➜ square top
-                  bottomRight: Radius.circular(25),
-                  topLeft: Radius.circular(25),
-                  topRight: Radius.circular(25)),
+              borderRadius: BorderRadius.circular(25),
             ),
           ),
           menuItemStyleData:
-              const MenuItemStyleData(padding: EdgeInsets.zero, height: 44),
-
-          /*────────── items ─────────*/
+          const MenuItemStyleData(padding: EdgeInsets.zero, height: 44),
           items: widget.items.map((txt) {
             final last = txt == widget.items.last;
             return DropdownMenuItem<String>(
@@ -349,16 +317,13 @@ class _DropdownChipState extends State<_DropdownChip> {
                 decoration: last
                     ? null
                     : const BoxDecoration(
-                        border:
-                            Border(bottom: BorderSide(color: Colors.white24))),
-                child: Text(
-                  txt,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                    border:
+                    Border(bottom: BorderSide(color: Colors.white24))),
+                child: Text(txt,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600)),
               ),
             );
           }).toList(),
@@ -368,9 +333,9 @@ class _DropdownChipState extends State<_DropdownChip> {
   }
 }
 
-/*─────────────────────────────────────────────────────────────────────────────*/
-/*  Book Card                           */
-/*─────────────────────────────────────────────────────────────────────────────*/
+/* ──────────────────────────────────────────────────────────── */
+/*  Book Card                                                  */
+/* ──────────────────────────────────────────────────────────── */
 
 class _BookCard extends StatelessWidget {
   const _BookCard({
@@ -394,26 +359,30 @@ class _BookCard extends StatelessWidget {
   final BookStatus status;
   final double widthFactor, cardHeight, contentPadding;
 
+  Color _statusColor() {
+    switch (status) {
+      case BookStatus.available:
+        return Colors.green;
+      case BookStatus.requested:
+        return Colors.orange;
+      case BookStatus.onLoan:
+        return Colors.red;
+    }
+  }
+
+  String _statusText() => status.name
+      .replaceFirstMapped(RegExp(r'([A-Z])'), (m) => ' ${m.group(1)}')
+      .trim();
+
   @override
   Widget build(BuildContext context) {
     final double cardW =
-        (MediaQuery.of(context).size.width * widthFactor).clamp(212, 260);
-    final double cardH = cardHeight.clamp(220, 400);
+    (MediaQuery.of(context).size.width * widthFactor)
+        .clamp(212.0, 260.0)
+        .toDouble();
 
-    Color _statusColor() {
-      switch (status) {
-        case BookStatus.available:
-          return Colors.green;
-        case BookStatus.requested:
-          return Colors.orange;
-        case BookStatus.onLoan:
-          return Colors.red;
-      }
-    }
-
-    String _statusText() => status.name
-        .replaceFirstMapped(RegExp(r'([A-Z])'), (m) => ' ${m.group(1)}')
-        .trim();
+    final double cardH =
+    cardHeight.clamp(220.0, 400.0).toDouble();
 
     return Align(
       alignment: Alignment.center,
@@ -422,125 +391,102 @@ class _BookCard extends StatelessWidget {
         height: cardH,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => GoRouter.of(context).go('/book-details'),
+          onTap: () => context.go('/book-details'),
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.beige,
-              borderRadius: BorderRadius.circular(16),
-            ),
+                color: AppColors.beige,
+                borderRadius: BorderRadius.circular(16)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Cover
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16),
-                          bottom: Radius.circular(16)),
-                      child: Image.asset(
-                        coverPath,
-                        height: 160,
-                        width: 150,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
+                // cover
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(16), bottom: Radius.circular(16)),
+                    child: coverPath.startsWith('http')
+                        ? Image.network(coverPath,
+                        height: 160, width: 150, fit: BoxFit.cover)
+                        : Image.asset(coverPath,
+                        height: 160, width: 150, fit: BoxFit.cover),
                   ),
                 ),
                 const SizedBox(height: 12),
-
-                // Title & author
+                // title & author
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: Column(
                     children: [
-                      Text(
-                        title,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      Text(title,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 4),
-                      Text(
-                        author,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium!
-                            .copyWith(fontWeight: FontWeight.w600),
-                      ),
+                      Text(author,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyMedium!
+                              .copyWith(fontWeight: FontWeight.w600)),
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 8),
-                // New: location & genre
+                // location & genre
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.location_on,
-                          size: 14, color: AppColors.secondary),
-                      const SizedBox(width: 4),
-                      Text(location, style: const TextStyle(fontSize: 12)),
-                      const SizedBox(width: 12),
-                      Icon(Icons.category,
-                          size: 14, color: AppColors.secondary),
-                      const SizedBox(width: 4),
-                      Text(genre, style: const TextStyle(fontSize: 12)),
-                    ],
-                  ),
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.location_on,
+                            size: 14, color: AppColors.secondary),
+                        const SizedBox(width: 4),
+                        Text(location, style: const TextStyle(fontSize: 12)),
+                        const SizedBox(width: 12),
+                        Icon(Icons.category,
+                            size: 14, color: AppColors.secondary),
+                        const SizedBox(width: 4),
+                        Text(genre, style: const TextStyle(fontSize: 12)),
+                      ]),
                 ),
-
                 const Spacer(),
-                // New: status badge
+                // status badge
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: _statusColor().withOpacity(.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _statusText(),
-                    style: TextStyle(
-                        color: _statusColor(),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600),
-                  ),
+                      color: _statusColor().withOpacity(.2),
+                      borderRadius: BorderRadius.circular(12)),
+                  child: Text(_statusText(),
+                      style: TextStyle(
+                          color: _statusColor(),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600)),
                 ),
                 const SizedBox(height: 8),
-
-                // Owner row
+                // owner row
                 Padding(
                   padding: EdgeInsets.only(
                       left: contentPadding, right: 12, bottom: 16),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 15,
-                        backgroundImage: ownerAvatar == null
-                            ? const AssetImage(
-                                'assets/images/book1.jpg',
-                              ) as ImageProvider
-                            : (ownerAvatar!.startsWith('http')
-                                ? NetworkImage(ownerAvatar!)
-                                : AssetImage(ownerAvatar!)),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          ownerName,
+                  child: Row(children: [
+                    CircleAvatar(
+                      radius: 15,
+                      backgroundImage: ownerAvatar == null
+                          ? const AssetImage('assets/images/book1.jpg')
+                      as ImageProvider
+                          : (ownerAvatar!.startsWith('http')
+                          ? NetworkImage(ownerAvatar!)
+                          : AssetImage(ownerAvatar!)),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(ownerName,
                           style: Theme.of(context).textTheme.bodyMedium,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
+                          overflow: TextOverflow.ellipsis),
+                    ),
+                  ]),
                 ),
               ],
             ),

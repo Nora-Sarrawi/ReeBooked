@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '/services/auth_service.dart';
 
 class CreateAccountScreen extends StatefulWidget {
   const CreateAccountScreen({super.key});
@@ -14,6 +16,42 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _termsAgreed = false;
 
+  void _signUp() async {
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match')),
+      );
+      return;
+    }
+    if (_passwordController.text.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password must be at least 6 characters')),
+      );
+      return;
+    }
+    if (!_emailController.text.contains('@')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a valid email')),
+      );
+      return;
+    }
+
+    try {
+      await AuthService().signUpWithEmail(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Account created! Please sign in.")),
+      );
+      Navigator.pop(context); // Go back to login screen
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Sign up failed: ${e.toString()}")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,9 +61,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           color: const Color(0xFF562B56),
-          onPressed: () {
-            // Handle back button action
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       backgroundColor: const Color(0xFFF2E9DC),
@@ -47,187 +83,18 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
               ),
             ),
             const SizedBox(height: 25.0),
-            const Text(
-              'Name',
-              style: TextStyle(
-                color: Color(0xFF562B56),
-                fontSize: 16,
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w400,
-                height: 1.95,
-                letterSpacing: 0.32,
-              ),
-            ),
-            const SizedBox(
-              height: 4.0,
-            ),
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                hintText: 'ex: jon smith',
-                hintStyle: const TextStyle(
-                  color: Color(0xFF888888),
-                  fontSize: 15,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w400,
-                  height: 1.5,
-                  letterSpacing: 0.30,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25.0),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF562B56),
-                    width: 2.0,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25.0),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF562B56),
-                    width: 2.0,
-                  ),
-                ),
-                filled: true,
-                fillColor: Color(0xFFF2E9DC),
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16.0, vertical: 14.0),
-              ),
-            ),
+            _buildLabel("Name"),
+            _buildTextField(_nameController, "ex: jon smith"),
             const SizedBox(height: 20.0),
-            const Text(
-              'Email',
-              style: TextStyle(
-                color: Color(0xFF562B56),
-                fontSize: 16,
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w400,
-                height: 1.95,
-                letterSpacing: 0.32,
-              ),
-            ),
-            const SizedBox(height: 4.0),
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                hintText: 'ex: jon.smith@email.com',
-                hintStyle: const TextStyle(
-                  color: Color(0xFF888888),
-                  fontSize: 15,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w400,
-                  height: 1.5,
-                  letterSpacing: 0.30,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25.0),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF562B56),
-                    width: 2.0,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25.0),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF562B56),
-                    width: 2.0,
-                  ),
-                ),
-                filled: true,
-                fillColor: Color(0xFFF2E9DC),
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16.0, vertical: 14.0),
-              ),
-            ),
+            _buildLabel("Email"),
+            _buildTextField(_emailController, "ex: jon.smith@email.com"),
             const SizedBox(height: 20.0),
-            const Text(
-              'Password',
-              style: TextStyle(
-                color: Color(0xFF562B56),
-                fontSize: 16,
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w400,
-                height: 1.95,
-                letterSpacing: 0.32,
-              ),
-            ),
-            const SizedBox(height: 4.0),
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                hintText: '*********',
-                hintStyle: const TextStyle(
-                  color: Color(0xFF888888),
-                  fontSize: 15,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w400,
-                  height: 1.5,
-                  letterSpacing: 0.30,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25.0),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF562B56),
-                    width: 2.3,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25.0),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF562B56),
-                    width: 2.0,
-                  ),
-                ),
-                filled: true,
-                fillColor: Color(0xFFF2E9DC),
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16.0, vertical: 14.0),
-              ),
-            ),
+            _buildLabel("Password"),
+            _buildTextField(_passwordController, "*********", obscure: true),
             const SizedBox(height: 20.0),
-            const Text(
-              'Confirm password',
-              style: TextStyle(
-                color: Color(0xFF562B56),
-                fontSize: 16,
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w400,
-                height: 1.95,
-                letterSpacing: 0.32,
-              ),
-            ),
-            const SizedBox(height: 4.0),
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(
-                hintText: '*********',
-                hintStyle: const TextStyle(
-                  color: Color(0xFF888888),
-                  fontSize: 15,
-                  fontFamily: 'Poppins',
-                  fontWeight: FontWeight.w400,
-                  height: 1.5,
-                  letterSpacing: 0.30,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25.0),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF562B56),
-                    width: 2.0,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(25.0),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF562B56),
-                    width: 2.0,
-                  ),
-                ),
-                filled: true,
-                fillColor: Color(0xFFF2E9DC),
-                contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16.0, vertical: 14.0),
-              ),
-            ),
+            _buildLabel("Confirm password"),
+            _buildTextField(_confirmPasswordController, "*********",
+                obscure: true),
             const SizedBox(height: 5.0),
             Row(
               children: <Widget>[
@@ -240,40 +107,39 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                   },
                   activeColor: const Color(0xFF562B56),
                 ),
-                Text.rich(
-                  TextSpan(
-                    children: [
-                      const TextSpan(
-                        text: 'I understood the ',
-                        style: TextStyle(
-                          color: Color(0xFF562B56),
-                          fontSize: 12,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w400,
-                          height: 2.07,
+                Expanded(
+                  child: Text.rich(
+                    TextSpan(
+                      children: [
+                        const TextSpan(
+                          text: 'I understood the ',
+                          style: TextStyle(
+                            color: Color(0xFF562B56),
+                            fontSize: 12,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
-                      TextSpan(
-                        text: 'terms & policy',
-                        style: const TextStyle(
-                          color: Color(0xFFCDA2F2),
-                          fontSize: 12,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w400,
-                          height: 2.07,
+                        TextSpan(
+                          text: 'terms & policy',
+                          style: const TextStyle(
+                            color: Color(0xFFCDA2F2),
+                            fontSize: 12,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
-                      const TextSpan(
-                        text: '.',
-                        style: TextStyle(
-                          color: Color(0xFF562B56),
-                          fontSize: 12,
-                          fontFamily: 'Poppins',
-                          fontWeight: FontWeight.w400,
-                          height: 2.07,
+                        const TextSpan(
+                          text: '.',
+                          style: TextStyle(
+                            color: Color(0xFF562B56),
+                            fontSize: 12,
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -282,32 +148,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: _termsAgreed
-                    ? () {
-                        // Handle sign up logic
-                        print('Sign Up button pressed');
-                        print('Name: ${_nameController.text}');
-                        print('Email: ${_emailController.text}');
-                        print('Password: ${_passwordController.text}');
-                        print(
-                            'Confirm Password: ${_confirmPasswordController.text}');
-                        if (_passwordController.text !=
-                            _confirmPasswordController.text) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Passwords do not match')),
-                          );
-                        } else if (_passwordController.text.length < 6) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text(
-                                    'Password must be at least 6 characters')),
-                          );
-                        } else {
-                          // Proceed with account creation
-                        }
-                      }
-                    : null,
+                onPressed: _termsAgreed ? _signUp : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFC76767),
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
@@ -334,32 +175,21 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Expanded(
-                  child: Divider(
-                    color: Color(0xFF888888),
-                    thickness: 0.8,
-                  ),
-                ),
+                    child: Divider(color: Color(0xFF888888), thickness: 0.8)),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 10.0),
                   child: Text(
                     'or sign up with',
-                    textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Color(0xFF562B56),
                       fontSize: 16,
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.w400,
-                      height: 1.95,
-                      letterSpacing: 0.32,
                     ),
                   ),
                 ),
                 Expanded(
-                  child: Divider(
-                    color: Color(0xFF888888),
-                    thickness: 0.8,
-                  ),
-                ),
+                    child: Divider(color: Color(0xFF888888), thickness: 0.8)),
               ],
             ),
             const SizedBox(height: 10.0),
@@ -367,9 +197,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // Handle Google sign up
-                  text:
-                  'Sign up with Google';
+                  // TODO: Handle Google sign up
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
@@ -383,10 +211,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Image.asset(
-                      'assets/images/google.jpg', // Replace with your actual asset path
-                      height: 24.0,
-                    ),
+                    Image.asset('assets/images/google.jpg', height: 24.0),
                     const SizedBox(width: 10.0),
                     const Text(
                       'Sign up with Google',
@@ -413,15 +238,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     color: Color(0xFF888888),
                     fontSize: 16,
                     fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w400,
-                    height: 1.95,
-                    letterSpacing: 0.32,
                   ),
                 ),
                 GestureDetector(
                   onTap: () {
-                    // Handle sign in navigation
-                    print('Sign in tapped');
+                    context.go('/login');
                   },
                   child: const Text(
                     'Sign in',
@@ -429,9 +250,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       color: Color(0xFF562B56),
                       fontSize: 16,
                       fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w400,
-                      height: 1.95,
-                      letterSpacing: 0.32,
                     ),
                   ),
                 ),
@@ -440,6 +258,48 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
             const SizedBox(height: 40.0),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Text(
+      text,
+      style: const TextStyle(
+        color: Color(0xFF562B56),
+        fontSize: 16,
+        fontFamily: 'Poppins',
+        fontWeight: FontWeight.w400,
+        height: 1.95,
+        letterSpacing: 0.32,
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String hint,
+      {bool obscure = false}) {
+    return TextField(
+      controller: controller,
+      obscureText: obscure,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(
+          color: Color(0xFF888888),
+          fontSize: 15,
+          fontFamily: 'Poppins',
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(25.0),
+          borderSide: const BorderSide(color: Color(0xFF562B56), width: 2.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(25.0),
+          borderSide: const BorderSide(color: Color(0xFF562B56), width: 2.0),
+        ),
+        filled: true,
+        fillColor: const Color(0xFFF2E9DC),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
       ),
     );
   }

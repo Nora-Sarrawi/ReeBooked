@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rebooked_app/core/theme.dart';
 
 class CustomTextField extends StatefulWidget {
   final TextEditingController? controller;
@@ -41,26 +42,18 @@ class _CustomTextFieldState extends State<CustomTextField> {
       controller: _internalController,
       obscureText: widget.obscureText,
       validator: widget.validator,
+      style: TextStyle(color: AppColors.secondary),
       keyboardType: TextInputType.multiline,
       textInputAction: TextInputAction.newline,
-      maxLines: null, // allows infinite lines
+      maxLines: null,
       minLines: 1,
       decoration: InputDecoration(
         hintText: widget.hintText ?? '',
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(25.0),
-          borderSide: const BorderSide(
-            color: Color(0xFF562B56),
-            width: 2.3,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(25.0),
-          borderSide: const BorderSide(
-            color: Color(0xFF562B56),
-            width: 2.3,
-          ),
-        ),
+        border: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        focusedBorder: InputBorder.none,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
     );
   }

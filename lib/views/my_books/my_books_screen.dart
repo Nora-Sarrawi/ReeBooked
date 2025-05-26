@@ -1,15 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/theme.dart'; // AppColors, appTheme
-import '../../core/constants.dart'; // AppPadding
+import '../../core/theme.dart'; // Contains AppColors
+import '../../core/constants.dart'; // Contains AppPadding
 
+// ✅ Updated Book model with 'id'
 class Book {
-  final String coverPath;
+  final String id;
+  final String coverUrl;
   final String title;
   final String author;
 
-  Book({required this.coverPath, required this.title, required this.author});
+  Book({
+    required this.id,
+    required this.coverUrl,
+    required this.title,
+    required this.author,
+  });
+
+  factory Book.fromDocument(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Book(
+      id: doc.id,
+      coverUrl: data['coverUrl'] ?? '',
+      title: data['title'] ?? '',
+      author: data['author'] ?? '',
+    );
+  }
 }
 
 class MyBooksScreen extends StatefulWidget {
@@ -25,36 +44,19 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
   @override
   void initState() {
     super.initState();
-    booksFuture = fetchBooks();
+    booksFuture = fetchBooksFromFirebase();
   }
 
-  Future<List<Book>> fetchBooks() async {
-    return [
-      Book(
-          coverPath: 'assets/images/bookCover2.png',
-          title: 'We Never Got Over',
-          author: 'Lucy Score'),
-      Book(
-          coverPath: 'assets/images/bookCover3.png',
-          title: 'This Summer Will Be Different',
-          author: 'Carley Fortune'),
-      Book(
-          coverPath: 'assets/images/bookCover4.png',
-          title: 'Deathly Hollows',
-          author: 'Harry Potter'),
-      Book(
-          coverPath: 'assets/images/bookCover5.png',
-          title: 'The beloved girls',
-          author: 'Harriet Evans'),
-      Book(
-          coverPath: 'assets/images/bookCover6.png',
-          title: 'The book of art',
-          author: 'Thomas J.'),
-      Book(
-          coverPath: 'assets/images/bookCover7.png',
-          title: 'The island',
-          author: 'Usher Evans'),
-    ];
+  Future<List<Book>> fetchBooksFromFirebase() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return [];
+
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('books')
+        .where('ownerId', isEqualTo: user.uid)
+        .get();
+
+    return querySnapshot.docs.map((doc) => Book.fromDocument(doc)).toList();
   }
 
   @override
@@ -66,7 +68,7 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: Padding(
           padding: AppPadding.screenPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -79,54 +81,68 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
                 },
               ),
               const SizedBox(height: 20),
-              FutureBuilder<List<Book>>(
-                future: booksFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  } else if (snapshot.hasData) {
-                    return GridView.builder(
-                      itemCount: snapshot.data!.length,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        childAspectRatio: 0.75, // Make cards shorter
-                      ),
-                      itemBuilder: (context, index) {
-                        final book = snapshot.data![index];
-                        return _BookCard(
-                          coverPath: book.coverPath,
-                          title: book.title,
-                          author: book.author,
-                          onPressed: () {
-                            context.go('/bookDetails', extra: book);
-                          },
-                        );
-                      },
-                    );
-                  } else {
-                    return const Center(child: Text('No books found.'));
-                  }
-                },
+              Expanded(
+                child: FutureBuilder<List<Book>>(
+                  future: booksFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    } else if (snapshot.hasData && snapshot.data!.isEmpty) {
+                      return _EmptyBooksWidget();
+                    } else if (snapshot.hasData) {
+                      return GridView.builder(
+                        itemCount: snapshot.data!.length,
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.75,
+                        ),
+                        itemBuilder: (context, index) {
+                          final book = snapshot.data![index];
+                          return _BookCard(
+                            coverUrl: book.coverUrl,
+                            title: book.title,
+                            author: book.author,
+                            onPressed: () {
+                              context.pushNamed(
+                                'bookDetails',
+                                pathParameters: {'bookId': book.id},
+                              );
+                            },
+                          );
+                        },
+                      );
+                    } else {
+                      return const Center(child: Text('No books found.'));
+                    }
+                  },
+                ),
               ),
-              const SizedBox(height: 96),
             ],
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFFC76767),
+        child: const Icon(Icons.add, size: 32, color: Colors.white),
+        onPressed: () {
+          // Handle add book action
+        },
+        shape: const CircleBorder(),
       ),
     );
   }
 }
 
 class _Header extends StatelessWidget {
-  const _Header(
-      {required this.logoW, required this.logoH, required this.onSearch});
+  const _Header({
+    required this.logoW,
+    required this.logoH,
+    required this.onSearch,
+  });
 
   final double logoW, logoH;
   final Function(String) onSearch;
@@ -187,20 +203,14 @@ class _Header extends StatelessWidget {
 
 class _BookCard extends StatelessWidget {
   const _BookCard({
-    required this.coverPath,
+    required this.coverUrl,
     required this.title,
     required this.author,
-    this.widthFactor = 1.0,
-    this.cardHeight = 120,
-    this.contentPadding = 16,
     this.onPressed,
     super.key,
   });
 
-  final String coverPath, title, author;
-  final double widthFactor;
-  final double cardHeight;
-  final double contentPadding;
+  final String coverUrl, title, author;
   final VoidCallback? onPressed;
 
   @override
@@ -220,18 +230,20 @@ class _BookCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Padding(
-              padding: const EdgeInsets.only(top: 16), // smaller padding
+              padding: const EdgeInsets.only(top: 16),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  coverPath,
-                  height: 120, // reduced image height
+                child: Image.network(
+                  coverUrl,
+                  height: 120,
                   width: 100,
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.broken_image, size: 100),
                 ),
               ),
             ),
-            const SizedBox(height: 10), // reduced spacing
+            const SizedBox(height: 10),
             Text(
               title,
               textAlign: TextAlign.center,
@@ -239,7 +251,7 @@ class _BookCard extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 8), // reduced spacing
+            const SizedBox(height: 8),
             Text(
               author,
               textAlign: TextAlign.center,
@@ -249,6 +261,23 @@ class _BookCard extends StatelessWidget {
                   .copyWith(fontWeight: FontWeight.w600),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyBooksWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text(
+        "You don't have any books yet.",
+        style: TextStyle(
+          color: Color(0xFF562B56),
+          fontSize: 18,
+          fontFamily: 'Outfit',
+          fontWeight: FontWeight.w500,
         ),
       ),
     );

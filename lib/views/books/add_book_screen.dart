@@ -1,6 +1,13 @@
+import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+
 import 'package:rebooked_app/core/theme.dart';
 import 'package:rebooked_app/widgets/primary_button.dart';
+import 'package:rebooked_app/services/storage_service.dart';
 
 class AddBookScreen extends StatefulWidget {
   const AddBookScreen({super.key});
@@ -16,10 +23,62 @@ class _AddBookScreenState extends State<AddBookScreen> {
   final TextEditingController _publishYearController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
-  String? _imagePath;
 
-  void _saveBook() {
-    if (_formKey.currentState?.validate() ?? false) {
+  final _picker = ImagePicker();
+  final _storage = StorageService();
+  File? _pickedImageFile;
+
+  String? _selectedLocation;
+  String? _selectedGenre;
+
+  final List<String> _locations = [
+    'Jerusalem', 'Ramallah', 'Nablus', 'Bethlehem', 'Hebron', 'Jenin'
+  ];
+
+  final List<String> _genres = [
+    'Storytelling', 'Truth', 'Imagination', 'Wisdom', 'Growth'
+  ];
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _pickedImageFile = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _saveBook() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_pickedImageFile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please pick an image")),
+      );
+      return;
+    }
+
+    try {
+      final newBookRef = FirebaseFirestore.instance.collection('books').doc();
+
+      final coverUrl = await _storage.uploadFile(
+        _pickedImageFile!,
+        'book_covers/${FirebaseAuth.instance.currentUser!.uid}/${newBookRef.id}.jpg',
+      );
+
+      await newBookRef.set({
+        'title': _titleController.text.trim(),
+        'author': _authorController.text.trim(),
+        'coverUrl': coverUrl,
+        'ownerId': FirebaseAuth.instance.currentUser!.uid,
+        'status': 'available',
+        'createdAt': FieldValue.serverTimestamp(),
+        'publishYear': _publishYearController.text.trim(),
+        'description': _descriptionController.text.trim(),
+        'notes': _notesController.text.trim(),
+        'location': _selectedLocation,
+        'genre': _selectedGenre,
+      });
+
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
@@ -35,35 +94,34 @@ class _AddBookScreenState extends State<AddBookScreen> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
+                context.go('/home');
               },
-              child: const Text(
-                'OK',
-                style: TextStyle(color: AppColors.secondary),
-              ),
+              child: const Text('OK', style: TextStyle(color: AppColors.secondary)),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
+                _formKey.currentState?.reset();
+                setState(() {
+                  _pickedImageFile = null;
+                  _selectedLocation = null;
+                  _selectedGenre = null;
+                });
               },
-              child: const Text(
-                'Add Another',
-                style: TextStyle(color: AppColors.secondary),
-              ),
+              child: const Text('Add Another', style: TextStyle(color: AppColors.secondary)),
             ),
           ],
         ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
       );
     }
   }
 
   void _cancel() {
-    Navigator.pop(context);
-  }
-
-  Future<void> _pickImage() async {
-    setState(() {
-      _imagePath = 'path/to/image.jpg';
-    });
+    context.go('/home');
   }
 
   @override
@@ -84,7 +142,6 @@ class _AddBookScreenState extends State<AddBookScreen> {
             child: Form(
               key: _formKey,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
@@ -93,14 +150,11 @@ class _AddBookScreenState extends State<AddBookScreen> {
                       bottom: screenHeight * 0.02,
                     ),
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         IconButton(
                           icon: const Icon(Icons.arrow_back),
                           color: AppColors.secondary,
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
+                          onPressed: _cancel,
                         ),
                         SizedBox(width: screenWidth * 0.02),
                         Text(
@@ -114,8 +168,6 @@ class _AddBookScreenState extends State<AddBookScreen> {
                       ],
                     ),
                   ),
-                  SizedBox(height: screenHeight * 0.02),
-                  // Wrap the image in a Center widget to keep it centered
                   GestureDetector(
                     onTap: _pickImage,
                     child: Center(
@@ -126,7 +178,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
                           color: Colors.grey[200],
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: _imagePath == null
+                        child: _pickedImageFile == null
                             ? Center(
                                 child: Text(
                                   'Pick an Image',
@@ -135,13 +187,11 @@ class _AddBookScreenState extends State<AddBookScreen> {
                                   ),
                                 ),
                               )
-                            : Center(
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Image.asset(
-                                    _imagePath!,
-                                    fit: BoxFit.cover,
-                                  ),
+                            : ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: Image.file(
+                                  _pickedImageFile!,
+                                  fit: BoxFit.cover,
                                 ),
                               ),
                       ),
@@ -157,7 +207,6 @@ class _AddBookScreenState extends State<AddBookScreen> {
                   ),
                   SizedBox(height: screenHeight * 0.02),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Expanded(
                         child: _buildLabeledTextField(
@@ -182,6 +231,26 @@ class _AddBookScreenState extends State<AddBookScreen> {
                     ],
                   ),
                   SizedBox(height: screenHeight * 0.02),
+                  _buildDropdownField(
+                    label: 'Location',
+                    value: _selectedLocation,
+                    items: _locations,
+                    onChanged: (val) => setState(() => _selectedLocation = val),
+                    screenHeight: screenHeight,
+                    screenWidth: screenWidth,
+                    theme: theme,
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
+                  _buildDropdownField(
+                    label: 'Genre',
+                    value: _selectedGenre,
+                    items: _genres,
+                    onChanged: (val) => setState(() => _selectedGenre = val),
+                    screenHeight: screenHeight,
+                    screenWidth: screenWidth,
+                    theme: theme,
+                  ),
+                  SizedBox(height: screenHeight * 0.02),
                   _buildLabeledTextField(
                     label: 'Description',
                     controller: _descriptionController,
@@ -201,7 +270,6 @@ class _AddBookScreenState extends State<AddBookScreen> {
                   ),
                   SizedBox(height: screenHeight * 0.04),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Expanded(
                         child: PrimaryButton(
@@ -289,6 +357,54 @@ class _AddBookScreenState extends State<AddBookScreen> {
             }
             return null;
           },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdownField({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required void Function(String?) onChanged,
+    required double screenHeight,
+    required double screenWidth,
+    required ThemeData theme,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.titleSmall?.copyWith(
+            color: AppColors.secondary,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        SizedBox(height: screenHeight * 0.01),
+        DropdownButtonFormField<String>(
+          value: value,
+          items: items
+              .map((item) => DropdownMenuItem(value: item, child: Text(item)))
+              .toList(),
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: AppColors.texe_field_background,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: screenWidth * 0.06,
+              vertical: screenHeight * 0.02,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(25),
+              borderSide: BorderSide(color: AppColors.secondary, width: 2),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(25),
+              borderSide: BorderSide(color: AppColors.secondary, width: 2),
+            ),
+          ),
+          validator: (value) => value == null ? 'Please select $label' : null,
         ),
       ],
     );

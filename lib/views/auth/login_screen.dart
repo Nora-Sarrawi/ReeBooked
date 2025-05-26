@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
+import 'package:go_router/go_router.dart';
+import 'package:rebooked_app/views/auth/signup_screen.dart';
+import 'package:rebooked_app/views/home/home_screen.dart';
+import '/services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -8,22 +13,35 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
 
-  void _login() {
-    final username = _usernameController.text;
-    final password = _passwordController.text;
+  void _login() async {
+    setState(() => _isLoading = true);
 
-    // Example login logic (replace with actual)
-    if (username == 'admin' && password == 'admin') {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    try {
+      final user = await AuthService().signInWithEmail(email, password);
+
+      if (user != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Login successful!')),
+        );
+      context.go('/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid email or password')),
+        );
+      } 
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login successful!')),
+        SnackBar(content: Text(e.toString())),
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid username or password')),
-      );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -45,7 +63,6 @@ class _LoginPageState extends State<LoginPage> {
           child: Stack(
             children: [
               // Logo/Image
-              // Logo using local asset
               Positioned(
                 left: 109,
                 top: 158,
@@ -99,7 +116,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-              // Username Field
+              // Email Field
               Positioned(
                 left: 32,
                 top: 482,
@@ -117,10 +134,10 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: TextField(
-                    controller: _usernameController,
+                    controller: _emailController,
                     decoration: const InputDecoration(
                       border: InputBorder.none,
-                      hintText: 'Username',
+                      hintText: 'Email',
                       hintStyle: TextStyle(
                         color: Color(0xFF562B56),
                         fontSize: 14,
@@ -169,22 +186,26 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               // Login Button
-              // Login Button
               Positioned(
-                left: 32, // Align with username and password
+                left: 32,
                 top: 610,
                 child: SizedBox(
-                  width: 350, // Match the width of input fields
+                  width: 350,
                   height: 45,
                   child: ElevatedButton(
-                    onPressed: _login,
+                    onPressed: _isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFC76767),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(25),
                       ),
                     ),
-                    child: const Text(
+                    child: _isLoading
+                        ? const CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xFFF2E9DC)),
+                    )
+                        : const Text(
                       'Login now',
                       style: TextStyle(
                         color: Color(0xFFF2E9DC),
@@ -196,7 +217,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-
               // Forgot Password
               Positioned(
                 left: 116,
@@ -206,7 +226,7 @@ class _LoginPageState extends State<LoginPage> {
                   height: 32,
                   child: TextButton(
                     onPressed: () {
-                      // Navigate to reset page
+                      // Add password reset logic or navigation here
                     },
                     child: const Text(
                       'Forgot your password?',
@@ -248,8 +268,14 @@ class _LoginPageState extends State<LoginPage> {
                             fontFamily: 'Poppins',
                             fontWeight: FontWeight.w700,
                           ),
-                          recognizer:
-                              null, // Add TapGestureRecognizer if needed
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const CreateAccountScreen()),
+                              );
+                            },
                         ),
                       ],
                     ),
@@ -262,4 +288,6 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
+
 }
+ 

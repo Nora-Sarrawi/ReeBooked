@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:rebooked_app/core/theme.dart';
-import 'package:rebooked_app/views/auth/reset_password/reset_Password_screen1.dart';
+import 'package:rebooked_app/views/auth/reset_password/Password_screen1.dart';
 import 'package:rebooked_app/views/auth/reset_password/reset_password_screen3.dart';
 import '../../../widgets/primary_button.dart';
 
@@ -14,7 +15,8 @@ class ResetPasswordScreen2 extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    final List<TextEditingController> controllers = List.generate(4, (_) => TextEditingController());
+    final List<TextEditingController> controllers =
+        List.generate(4, (_) => TextEditingController());
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
@@ -61,7 +63,9 @@ class ResetPasswordScreen2 extends StatelessWidget {
                           textAlign: TextAlign.center,
                           maxLength: 1,
                           keyboardType: TextInputType.number,
-                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly
+                          ],
                           onChanged: (value) {
                             if (value.isNotEmpty && index < 3) {
                               FocusScope.of(context).nextFocus();
@@ -120,8 +124,7 @@ class ResetPasswordScreen2 extends StatelessWidget {
                   PrimaryButton(
                     text: 'Confirm',
                     onPressed: () {
-                      Navigator.push(context,
-                          MaterialPageRoute(builder: (context) => ResetPasswordScreen3()),);
+                      context.go('reset-password3');
                     },
                     color: AppColors.secondary,
                     width: double.infinity,
@@ -143,7 +146,8 @@ class ResetPasswordScreen2 extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => ResetPasswordScreen1()),
+                        MaterialPageRoute(
+                            builder: (context) => ResetPasswordScreen1()),
                       );
                     },
                   ),
