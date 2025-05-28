@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:rebooked_app/models/notification_model.dart';
+import 'package:rebooked_app/services/notification_service.dart';
+import 'package:timeago/timeago.dart' as timeago;
+
 import '../../core/theme.dart';
 
 /*───────────────────────────────────────────────────────────────────────────*/
@@ -102,115 +106,57 @@ class Notif {
   });
 }
 
-const _dummy = [
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person1.webp',
-      badge: 2,
-      time: '1 m ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person2.jpg',
-      badge: 10,
-      time: '10 h ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person1.webp',
-      badge: 2,
-      time: '1 m ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person2.jpg',
-      badge: 10,
-      time: '10 h ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person1.webp',
-      badge: 2,
-      time: '1 m ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person2.jpg',
-      badge: 10,
-      time: '10 h ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person1.webp',
-      badge: 2,
-      time: '1 m ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person2.jpg',
-      badge: 10,
-      time: '10 h ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person1.webp',
-      badge: 2,
-      time: '1 m ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person2.jpg',
-      badge: 10,
-      time: '10 h ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person1.webp',
-      badge: 2,
-      time: '1 m ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person2.jpg',
-      badge: 10,
-      time: '10 h ago'),
-];
-
 /*───────────────────────────────────────────────────────────────────────────*/
 /*  List wrapper                                                            */
 /*───────────────────────────────────────────────────────────────────────────*/
 
 class _NotifList extends StatelessWidget {
   const _NotifList({required this.tab});
-
   final NotifTab tab;
 
   @override
   Widget build(BuildContext context) {
-    final list = _dummy; // later fetch from backend
+    final service = NotificationService();
+    final stream = service.streamNotifications(
+      onlyUnread: tab == NotifTab.general,
+    );
 
-    return ListView.separated(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
-      itemCount: list.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 20),
-      itemBuilder: (context, i) => _NotifTile(
-        data: list[i],
-        showBadge: tab == NotifTab.general, // ★ NEW
-      ),
+    return StreamBuilder<List<SwapNotification>>(
+      stream: stream,
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final list = snap.data ?? [];
+        if (list.isEmpty) {
+          return const Center(
+            child: Text(
+              'No notifications yet.',
+              style: TextStyle(color: AppColors.secondary),
+            ),
+          );
+        }
+        return ListView.separated(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+          itemCount: list.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 20),
+          itemBuilder: (context, i) {
+            final n = list[i];
+            return _NotifTile(
+              data: Notif(
+                // adapt your _NotifTile to accept SwapNotification
+                title: 'Swap ${n.requestId}',
+                body: n.text,
+                avatar: 'assets/images/notification.png',
+                badge: 0,
+                time: timeago.format(n.createdAt),
+              ),
+              showBadge: tab == NotifTab.general && !n.read,
+            );
+          },
+        );
+      },
     );
   }
 }
