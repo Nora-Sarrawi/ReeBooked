@@ -67,6 +67,7 @@ final GoRouter router = GoRouter(
             ),
           ],
         ),
+
       ],
     ),
 
@@ -84,6 +85,21 @@ GoRoute(
     return BookDetailsScreen(bookId: bookId);
   },
 ),
+    GoRoute(
+      name: 'requestDetails',
+      path: '/request-details',
+      builder: (context, state) {
+        final data = state.extra as Map<String, dynamic>;
+        return RequestDetailsScreen(
+          swapId: data['swapId'],
+          ownerId: data['ownerId'],
+          borrowerId: data['borrowerId'],
+          //ownerBookId: data['ownerBookId'],
+          //borrowerBookId: data['borrowerBookId'],
+        );
+      },
+    ),
+
     GoRoute(
         path: '/forgot-password', builder: (_, __) => ResetPasswordScreen1()),
     GoRoute(path: '/Login', builder: (_, __) => LoginPage()),
