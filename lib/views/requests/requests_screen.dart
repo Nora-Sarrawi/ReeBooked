@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -52,44 +52,47 @@ class RequestDetails {
       );
 }
 
-// Service (Replace with real API endpoints)
+// Simulated Service (replace with real backend)
 class RequestService {
   static Future<RequestDetails> fetchRequestDetails() async {
-    await Future.delayed(const Duration(seconds: 1)); // Simulate network
+    await Future.delayed(const Duration(seconds: 1));
     return RequestDetails(
       fromUser: User(
-          name: "Masa Jaara",
-          imageUrl: "assets/images/profilePic1.png",
-          bookTitle: "Things we never got over"),
+        name: "Masa Jaara",
+        imageUrl: "assets/images/profilePic1.png",
+        bookTitle: "Things we never got over",
+      ),
       toUser: User(
-          name: "Nora Sarrawi",
-          imageUrl: "assets/images/profilePic2.png",
-          bookTitle: "This summer will be different"),
-      status: "Completed",
+        name: "Nora Sarrawi",
+        imageUrl: "assets/images/profilePic2.png",
+        bookTitle: "This summer will be different",
+      ),
+      status: "Pending",
       notes: [
         Note(
             userName: "Masa Jaara",
             userImage: "assets/images/profilePic1.png",
-            text: "First note here."),
+            text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit"),
         Note(
             userName: "Nora Sarrawi",
             userImage: "assets/images/profilePic2.png",
-            text: "Second note."),
+            text: "Lorem ipsum dolor sit amet, adipiscing elit"),
       ],
     );
   }
 
   static Future<void> addNote(String text) async {
     await Future.delayed(const Duration(seconds: 1));
-    // POST note to backend
+    // Push note to backend
   }
 
   static Future<void> respondToRequest(bool agree) async {
     await Future.delayed(const Duration(seconds: 1));
-    // POST response to backend
+    // Send response to backend
   }
 }
 
+// UI Screen
 class RequestDetailsScreen extends StatefulWidget {
   const RequestDetailsScreen({super.key});
 
@@ -101,6 +104,7 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
   late Future<RequestDetails> _requestFuture;
   final TextEditingController _noteController = TextEditingController();
   bool _isLoading = false;
+  bool _canSubmit = true;
 
   @override
   void initState() {
@@ -110,14 +114,28 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
 
   void _submitNote() async {
     final noteText = _noteController.text.trim();
-    if (noteText.isEmpty) return;
+    if (noteText.isEmpty || noteText.length > 300 || !_canSubmit) return;
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _canSubmit = false;
+    });
+
     await RequestService.addNote(noteText);
     _noteController.clear();
+
     setState(() {
       _requestFuture = RequestService.fetchRequestDetails();
       _isLoading = false;
+    });
+
+    // Cooldown logic: re-enable after 1 minute
+    Timer(const Duration(minutes: 1), () {
+      if (mounted) {
+        setState(() {
+          _canSubmit = true;
+        });
+      }
     });
   }
 
@@ -125,7 +143,7 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
     setState(() => _isLoading = true);
     await RequestService.respondToRequest(agree);
     setState(() => _isLoading = false);
-    context.go('/swap-request'); // navigate after action
+    context.go('/swap-request');
   }
 
   @override
@@ -232,8 +250,10 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
                     ),
                     child: TextField(
                       controller: _noteController,
+                      maxLength: 300,
                       onSubmitted: (_) => _submitNote(),
                       decoration: const InputDecoration(
+                        counterText: '',
                         border: InputBorder.none,
                         hintText: 'Add a note',
                         hintStyle: TextStyle(
@@ -245,10 +265,31 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 8),
+
+                  // Submit Button (instead of auto-submit for clarity)
+                  ElevatedButton(
+                    onPressed: _canSubmit && !_isLoading ? _submitNote : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF562B56),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Submit Note',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontFamily: 'Inter',
+                      ),
+                    ),
+                  ),
 
                   const Spacer(),
 
-                  // Buttons
+                  // Agree / Decline
                   if (_isLoading)
                     const Center(child: CircularProgressIndicator())
                   else

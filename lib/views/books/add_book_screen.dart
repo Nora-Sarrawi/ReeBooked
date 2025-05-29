@@ -39,14 +39,28 @@ class _AddBookScreenState extends State<AddBookScreen> {
     'Storytelling', 'Truth', 'Imagination', 'Wisdom', 'Growth'
   ];
 
-  Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      setState(() {
-        _pickedImageFile = File(pickedFile.path);
-      });
+Future<void> _pickImage() async {
+  final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+  if (pickedFile != null) {
+    final file = File(pickedFile.path);
+    final extension = pickedFile.name.split('.').last.toLowerCase();
+    final allowedExtensions = ['jpg', 'jpeg', 'png'];
+
+    if (!allowedExtensions.contains(extension)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Only JPG, JPEG, or PNG files are allowed.'),
+        ),
+      );
+      return;
     }
+
+    setState(() {
+      _pickedImageFile = file;
+    });
   }
+}
+
 
   Future<void> _saveBook() async {
     if (!_formKey.currentState!.validate()) return;

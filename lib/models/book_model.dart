@@ -45,27 +45,27 @@ class Book {
     this.notes,
   });
 
-  /// Firestore-friendly deserialization
-  factory Book.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
-    final data = doc.data()!;
-    return Book(
-      id: doc.id,
-      title: data['title'] as String,
-      author: data['author'] as String,
-      genre: data['genre'] as String,
-      location: data['location'] as String,
-      coverUrl: data['coverUrl'] as String,
-      ownerId: data['ownerId'] as String,
-      ownerName: data['ownerName'] as String,
-      ownerAvatarUrl: data['ownerAvatarUrl'] as String,
-      status: _statusFromString(data['status'] as String),
-      requestedById: data['requestedById'] as String?,
-      loanedToId: data['loanedToId'] as String?,
-      dueDate: (data['dueDate'] as Timestamp?)?.toDate(),
-      description: data['description'] as String?,
-      notes: data['notes'] as String?,
-    );
-  }
+ factory Book.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+  final data = doc.data()!;
+  return Book(
+    id: doc.id,
+    title: data['title'] as String? ?? '',
+    author: data['author'] as String? ?? '',
+    genre: data['genre'] as String? ?? '',
+    location: data['location'] as String? ?? '',
+    coverUrl: data['coverUrl'] as String? ?? '',
+    ownerId: data['ownerId'] as String? ?? '',
+    ownerName: data['ownerName'] as String? ?? '',
+    ownerAvatarUrl: data['ownerAvatarUrl'] as String? ?? '',
+    status: _statusFromString(data['status'] as String? ?? ''),
+    requestedById: data['requestedById'] as String?,
+    loanedToId: data['loanedToId'] as String?,
+    dueDate: (data['dueDate'] as Timestamp?)?.toDate(),
+    description: data['description'] as String?,
+    notes: data['notes'] as String?,
+  );
+}
+
 
   /// Firestore serialization
   Map<String, dynamic> toFirestore() {
@@ -85,5 +85,10 @@ class Book {
       'description': description,
       'notes': notes,
     };
+  }
+
+  /// 🔥 Add this factory to fix your error
+  factory Book.fromDocument(DocumentSnapshot doc) {
+    return Book.fromFirestore(doc as DocumentSnapshot<Map<String, dynamic>>);
   }
 }

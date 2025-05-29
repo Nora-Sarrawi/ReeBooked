@@ -9,6 +9,13 @@ service cloud.firestore {
       allow create:               if request.auth.uid != null;
     }
 
+    match /books/{bookId} {
+      allow read: if true;  // Anyone can read books
+      allow create: if request.auth != null;  // Logged in users can create books
+      allow update, delete: if request.auth != null && 
+        request.auth.uid == resource.data.ownerId;  // Only book owners can update/delete
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
