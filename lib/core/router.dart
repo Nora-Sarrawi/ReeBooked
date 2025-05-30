@@ -67,7 +67,6 @@ final GoRouter router = GoRouter(
             ),
           ],
         ),
-
       ],
     ),
 
@@ -77,14 +76,14 @@ final GoRouter router = GoRouter(
     GoRoute(path: '/settings', builder: (_, __) => SettingsPage()),
     GoRoute(path: '/add-book', builder: (_, __) => AddBookScreen()),
     GoRoute(path: '/confirm', builder: (_, __) => ConfirmSwapPage()),
-GoRoute(
-  path: '/book/:bookId',
-  name: 'bookDetails',
-  builder: (context, state) {
-    final bookId = state.pathParameters['bookId']!;
-    return BookDetailsScreen(bookId: bookId);
-  },
-),
+    GoRoute(
+      path: '/book/:bookId',
+      name: 'bookDetails',
+      builder: (context, state) {
+        final bookId = state.pathParameters['bookId']!;
+        return BookDetailsScreen(bookId: bookId);
+      },
+    ),
     GoRoute(
       name: 'requestDetails',
       path: '/request-details',
@@ -105,5 +104,17 @@ GoRoute(
     GoRoute(path: '/Login', builder: (_, __) => LoginPage()),
     GoRoute(path: '/Signup', builder: (_, __) => CreateAccountScreen()),
     GoRoute(path: '/swap-request', builder: (_, __) => SwapRequestsScreen()),
+    GoRoute(
+      name: 'swapDetailsById',
+      path: '/swapDetails/:swapId',
+      builder: (context, state) {
+        final swapId = state.pathParameters['swapId']!;
+        return RequestDetailsScreen(
+          swapId: swapId,
+          ownerId: '', // fetched inside the screen
+          borrowerId: '', // fetched inside the screen
+        );
+      },
+    ),
   ],
 );
