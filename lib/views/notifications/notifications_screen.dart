@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:rebooked_app/models/notifications_summary.dart';
 import 'package:rebooked_app/services/notification_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
+
 import '../../core/theme.dart';
 
 class NotificationsScreen extends StatelessWidget {
@@ -80,6 +81,7 @@ class NotificationsScreen extends StatelessWidget {
 
 class _SummaryList extends StatelessWidget {
   final bool onlyUnread;
+
 
   const _SummaryList({super.key, required this.onlyUnread});
 

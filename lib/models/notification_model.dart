@@ -2,11 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SwapNotification {
   final String id; // document ID
+ 
   final String requestId; // which swap this lives under
   final String senderId; // who sent it
   final String senderName;
   final String senderAvatarUrl;
   final String text;
+
   final DateTime createdAt;
   final bool read;
 
@@ -16,6 +18,7 @@ class SwapNotification {
     required this.senderId,
     required this.senderName,
     required this.senderAvatarUrl,
+
     required this.text,
     required this.createdAt,
     this.read = false,
@@ -28,6 +31,7 @@ class SwapNotification {
       senderId: data['senderId'] as String,
       senderName: data['senderName'] as String,
       senderAvatarUrl: data['senderAvatarUrl'] as String,
+
       text: data['text'] as String,
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       read: data['read'] as bool? ?? false,
@@ -39,6 +43,7 @@ class SwapNotification {
         'senderId': senderId,
         'senderName': senderName,
         'senderAvatarUrl': senderAvatarUrl,
+
         'text': text,
         'createdAt': createdAt,
         'read': read,
