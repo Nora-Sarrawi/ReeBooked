@@ -4,17 +4,71 @@ import 'package:rebooked_app/widgets/primary_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class ConfirmSwapPage extends StatefulWidget {
-  const ConfirmSwapPage({super.key});
+class Book {
+  final String id;
+  final String title;
+  final String coverUrl;
 
-  static const List<String> books = ['Book 1', 'Book 2', 'Book 3', 'Book 4'];
+  Book({
+    required this.id,
+    required this.title,
+    required this.coverUrl,
+  });
+
+  factory Book.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Book(
+      id: doc.id,
+      title: data['title'] ?? 'Untitled',
+      coverUrl: data['coverUrl'] ?? '',
+    );
+  }
+}
+
+class ConfirmSwapPage extends StatefulWidget {
+  final Map<String, dynamic>? bookDetails;
+
+  const ConfirmSwapPage({
+    super.key,
+    this.bookDetails,
+  });
 
   @override
   State<ConfirmSwapPage> createState() => _ConfirmSwapPageState();
 }
 
 class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
-  String? selectedBook;
+  Book? selectedBook;
+  List<Book> userBooks = [];
+  late final String targetBookTitle;
+  late final String targetBookCover;
+  late final String targetBookId;
+
+  @override
+  void initState() {
+    super.initState();
+    targetBookTitle = widget.bookDetails?['bookTitle'] ?? 'Select a Book';
+    targetBookCover = widget.bookDetails?['bookCover'] ??
+        'assets/images/book_placeholder.jpg';
+    targetBookId = widget.bookDetails?['bookId'] ?? '';
+    _fetchUserBooks();
+  }
+
+  Future<void> _fetchUserBooks() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('books')
+        .where('ownerId', isEqualTo: user.uid)
+        .where('status', isEqualTo: 'available')
+        .get();
+
+    setState(() {
+      userBooks =
+          querySnapshot.docs.map((doc) => Book.fromFirestore(doc)).toList();
+    });
+  }
 
   Future<void> sendSwapRequest() async {
     if (selectedBook == null) return;
@@ -23,12 +77,16 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
     if (user == null) return;
 
     final swapData = {
-      'name': 'OCEAN DOOR',
-      'imagePath': 'assets/images/book3.jpg',
-      'requestMessage': "I'd like to swap my '$selectedBook' for your 'OCEAN DOOR'",
+      'name': targetBookTitle,
+      'imagePath': targetBookCover,
+      'requestMessage':
+          "I'd like to swap my '${selectedBook!.title}' for your '$targetBookTitle'",
       'status': 'pending',
       'borrowerId': user.uid,
-      'ownerId': 'TARGET_USER_ID', // <-- Replace with actual target user ID
+      'borrowerBookId': selectedBook!.id,
+      'ownerBookId': targetBookId,
+      'ownerId':
+          'TARGET_USER_ID', // This should be set to the actual owner's ID
       'timestamp': FieldValue.serverTimestamp(),
     };
 
@@ -41,7 +99,8 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -118,7 +177,7 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
                     borderRadius: BorderRadius.circular(25),
                   ),
                   padding: EdgeInsets.symmetric(horizontal: 16),
-                  child: DropdownButton<String>(
+                  child: DropdownButton<Book>(
                     value: selectedBook,
                     hint: Text(
                       'Choose your book',
@@ -128,16 +187,16 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
                     iconEnabledColor: Colors.white,
                     isExpanded: true,
                     borderRadius: BorderRadius.circular(25),
-                    items: ConfirmSwapPage.books.map((String book) {
-                      return DropdownMenuItem<String>(
+                    items: userBooks.map((Book book) {
+                      return DropdownMenuItem<Book>(
                         value: book,
                         child: Text(
-                          book,
+                          book.title,
                           style: TextStyle(color: Colors.white),
                         ),
                       );
                     }).toList(),
-                    onChanged: (value) {
+                    onChanged: (Book? value) {
                       setState(() {
                         selectedBook = value;
                       });
@@ -145,17 +204,6 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
                   ),
                 ),
               ),
-              if (selectedBook != null) ...[
-                SizedBox(height: 12),
-                Text(
-                  'Selected book: $selectedBook',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.secondary,
-                  ),
-                ),
-              ],
               SizedBox(height: screenHeight * 0.04),
               Container(
                 padding: EdgeInsets.symmetric(
@@ -175,7 +223,7 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
                 child: Column(
                   children: [
                     Text(
-                      'You are requesting to swap your book with OCEAN DOOR',
+                      'You are requesting to swap your book with $targetBookTitle',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: AppColors.secondary,
@@ -184,14 +232,82 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
                       ),
                     ),
                     SizedBox(height: screenHeight * 0.02),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Image.asset(
-                        'assets/images/book3.jpg',
-                        width: screenWidth * 0.5,
-                        height: screenHeight * 0.2,
-                        fit: BoxFit.cover,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        if (selectedBook != null)
+                          Expanded(
+                            child: Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Image.network(
+                                    selectedBook!.coverUrl,
+                                    width: screenWidth * 0.35,
+                                    height: screenHeight * 0.2,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Container(
+                                      width: screenWidth * 0.35,
+                                      height: screenHeight * 0.2,
+                                      color: Colors.grey[300],
+                                      child: Icon(Icons.book, size: 50),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Your Book',
+                                  style: TextStyle(
+                                    color: AppColors.secondary,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        if (selectedBook != null)
+                          Icon(Icons.swap_horiz, size: 40),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: targetBookCover.startsWith('http')
+                                    ? Image.network(
+                                        targetBookCover,
+                                        width: screenWidth * 0.35,
+                                        height: screenHeight * 0.2,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Container(
+                                          width: screenWidth * 0.35,
+                                          height: screenHeight * 0.2,
+                                          color: Colors.grey[300],
+                                          child: Icon(Icons.book, size: 50),
+                                        ),
+                                      )
+                                    : Image.asset(
+                                        targetBookCover,
+                                        width: screenWidth * 0.35,
+                                        height: screenHeight * 0.2,
+                                        fit: BoxFit.cover,
+                                      ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                targetBookTitle,
+                                style: TextStyle(
+                                  color: AppColors.secondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                     SizedBox(height: screenHeight * 0.04),
                     Row(
@@ -201,10 +317,12 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
                           child: SizedBox(
                             height: screenHeight * 0.06,
                             child: ElevatedButton(
-                              onPressed: () async {
-                                await sendSwapRequest();
-                                showSuccessDialog(context);
-                              },
+                              onPressed: selectedBook == null
+                                  ? null
+                                  : () async {
+                                      await sendSwapRequest();
+                                      showSuccessDialog(context);
+                                    },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
                                 shape: RoundedRectangleBorder(
@@ -234,7 +352,8 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
                               },
                               style: OutlinedButton.styleFrom(
                                 backgroundColor: AppColors.gray,
-                                side: const BorderSide(color: Color(0xFFD1D1D6)),
+                                side:
+                                    const BorderSide(color: Color(0xFFD1D1D6)),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(25),
                                 ),

@@ -12,7 +12,8 @@ class BookDetailsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFFFFFFF),
       body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance.collection('books').doc(bookId).get(),
+        future:
+            FirebaseFirestore.instance.collection('books').doc(bookId).get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -43,7 +44,8 @@ class BookDetailsScreen extends StatelessWidget {
                     children: [
                       TextButton.icon(
                         onPressed: () => context.go('/my-books'),
-                        icon: const Icon(Icons.arrow_back, color: Color(0xFF562B56)),
+                        icon: const Icon(Icons.arrow_back,
+                            color: Color(0xFF562B56)),
                         label: const Text(
                           'Book Details',
                           style: TextStyle(
@@ -100,7 +102,8 @@ class BookDetailsScreen extends StatelessWidget {
                       ),
                       const SizedBox(width: 12),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF7C873),
                           borderRadius: BorderRadius.circular(20),
@@ -119,15 +122,17 @@ class BookDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Row(
-                    children: const [
+                    children: [
                       CircleAvatar(
-                        backgroundImage: NetworkImage("https://placehold.co/30x30"),
+                        backgroundImage: data['ownerAvatarUrl'] != null
+                            ? NetworkImage(data['ownerAvatarUrl'])
+                            : const NetworkImage("https://placehold.co/30x30"),
                         radius: 15,
                       ),
-                      SizedBox(width: 8),
+                      const SizedBox(width: 8),
                       Text(
-                        'Kareem Abukharma', // TODO: Replace with actual owner name using ownerId
-                        style: TextStyle(
+                        data['ownerName'] ?? 'Unknown Owner',
+                        style: const TextStyle(
                           color: Color(0xFF562B56),
                           fontSize: 16,
                           fontFamily: 'Inter',
@@ -144,10 +149,20 @@ class BookDetailsScreen extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(25),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 40, vertical: 12),
                       ),
                       onPressed: () {
-                        context.go('/confirm');
+                        context.go('/confirm', extra: {
+                          'bookId': bookId,
+                          'bookTitle': title,
+                          'bookCover': coverUrl,
+                          'author': author,
+                          'ownerName': data['ownerName'] ?? 'Unknown Owner',
+                          'location': data['location'] ?? '',
+                          'genre': data['genre'] ?? '',
+                          'status': status,
+                        });
                       },
                       child: const Text(
                         'Send Swap Request',

@@ -29,7 +29,9 @@ class ResetPasswordScreen1 extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.arrow_back),
                       color: AppColors.secondary,
-                      onPressed: () {},
+                      onPressed: () {
+                        context.go('/Login');
+                      },
                     ),
                     SizedBox(width: screenWidth * 0.02),
                     Text(
