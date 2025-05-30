@@ -40,6 +40,8 @@ class MyBooksScreen extends StatefulWidget {
 
 class _MyBooksScreenState extends State<MyBooksScreen> {
   late Future<List<Book>> booksFuture;
+  String _searchQuery = '';
+  List<Book> _allBooks = [];
 
   @override
   void initState() {
@@ -56,7 +58,25 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
         .where('ownerId', isEqualTo: user.uid)
         .get();
 
-    return querySnapshot.docs.map((doc) => Book.fromDocument(doc)).toList();
+    _allBooks =
+        querySnapshot.docs.map((doc) => Book.fromDocument(doc)).toList();
+    return _allBooks;
+  }
+
+  List<Book> _getFilteredBooks(List<Book> books) {
+    if (_searchQuery.isEmpty) return books;
+
+    final query = _searchQuery.toLowerCase();
+    return books.where((book) {
+      return book.title.toLowerCase().contains(query) ||
+          book.author.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  void _handleSearch(String query) {
+    setState(() {
+      _searchQuery = query;
+    });
   }
 
   Future<void> deleteBook(String bookId) async {
@@ -266,9 +286,7 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
               _Header(
                 logoW: logoW,
                 logoH: logoH,
-                onSearch: (query) {
-                  // Handle search
-                },
+                onSearch: _handleSearch,
               ),
               const SizedBox(height: 20),
               Expanded(
@@ -279,11 +297,25 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
                       return const Center(child: CircularProgressIndicator());
                     } else if (snapshot.hasError) {
                       return Center(child: Text('Error: ${snapshot.error}'));
-                    } else if (snapshot.hasData && snapshot.data!.isEmpty) {
-                      return _EmptyBooksWidget();
                     } else if (snapshot.hasData) {
+                      final filteredBooks = _getFilteredBooks(snapshot.data!);
+                      if (filteredBooks.isEmpty) {
+                        return Center(
+                          child: Text(
+                            _searchQuery.isEmpty
+                                ? "You don't have any books yet."
+                                : "No books found matching '${_searchQuery}'",
+                            style: const TextStyle(
+                              color: Color(0xFF562B56),
+                              fontSize: 18,
+                              fontFamily: 'Outfit',
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        );
+                      }
                       return GridView.builder(
-                        itemCount: snapshot.data!.length,
+                        itemCount: filteredBooks.length,
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
@@ -292,7 +324,7 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
                           childAspectRatio: 0.75,
                         ),
                         itemBuilder: (context, index) {
-                          final book = snapshot.data![index];
+                          final book = filteredBooks[index];
                           return _BookCard(
                             book: book,
                             onPressed: () {
@@ -325,7 +357,7 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
         backgroundColor: const Color(0xFFC76767),
         child: const Icon(Icons.add, size: 32, color: Colors.white),
         onPressed: () {
-          // Handle add book action
+          context.push('/add-book');
         },
         shape: const CircleBorder(),
       ),
@@ -372,7 +404,7 @@ class _Header extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         TextField(
-          onSubmitted: onSearch,
+          onChanged: onSearch,
           style: const TextStyle(color: Colors.white, fontSize: 16),
           cursorColor: Colors.white,
           decoration: InputDecoration(

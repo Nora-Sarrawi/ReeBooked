@@ -1,7 +1,8 @@
+// firestore.rules
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
+
 
     //  Allow each user to manage only their own profile document
     match /users/{userId} {
@@ -19,5 +20,26 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if false;
     }
+
+    /* ───── swaps collection ───── */
+    match /swaps/{swapId} {
+      allow read:   if isParty();
+      allow create: if request.auth.uid == request.resource.data.borrowerId;
+      allow update: if isParty() &&
+                    request.resource.data.status in ['accepted', 'declined'];
+
+      function isParty() {
+        return request.auth != null &&
+               (request.auth.uid == resource.data.ownerId ||
+                request.auth.uid == resource.data.borrowerId);
+      }
+
+      /* per-swap notes sub-collection */
+      match /notes/{noteId} {
+        allow read, create: if isParty();
+      }
+    }
+
+    /* add your /books rules or other collections here */
   }
 }

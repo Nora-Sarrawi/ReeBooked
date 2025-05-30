@@ -25,13 +25,13 @@ final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 final GoRouter router = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: '/start',
+  initialLocation: '/Login',
   routes: [
-    // This ShellRoute wraps all five “tab” routes in your bottom bar
+    // This ShellRoute wraps all five "tab" routes in your bottom bar
     ShellRoute(
       navigatorKey: _shellNavigatorKey,
       builder: (context, state, child) {
-        // The child here will be whichever tab’s page you’re on.
+        // The child here will be whichever tab's page you're on.
         return ShellScaffold(child: child);
       },
       routes: [
@@ -61,8 +61,7 @@ final GoRouter router = GoRouter(
               NoTransitionPage(child: ProfileScreen()),
           routes: [
             GoRoute(
-              path:
-                  'settings', // NOTE: this makes full path = /profile/settings
+              path: 'settings',
               builder: (context, state) => SettingsPage(),
             ),
           ],
@@ -75,15 +74,35 @@ final GoRouter router = GoRouter(
     GoRoute(path: '/start', builder: (_, __) => const StartScreen()),
     GoRoute(path: '/settings', builder: (_, __) => SettingsPage()),
     GoRoute(path: '/add-book', builder: (_, __) => AddBookScreen()),
-    GoRoute(path: '/confirm', builder: (_, __) => ConfirmSwapPage()),
-GoRoute(
-  path: '/book/:bookId',
-  name: 'bookDetails',
-  builder: (context, state) {
-    final bookId = state.pathParameters['bookId']!;
-    return BookDetailsScreen(bookId: bookId);
-  },
-),
+    GoRoute(
+      path: '/confirm',
+      builder: (context, state) => ConfirmSwapPage(
+        bookDetails: state.extra is Map<String, dynamic>
+            ? state.extra as Map<String, dynamic>
+            : null,
+      ),
+    ),
+    GoRoute(
+      path: '/book/:bookId',
+      name: 'bookDetails',
+      builder: (context, state) {
+        final bookId = state.pathParameters['bookId']!;
+        return BookDetailsScreen(bookId: bookId);
+      },
+    ),
+    GoRoute(
+      name: 'requestDetails',
+      path: '/request-details',
+      builder: (context, state) {
+        final data = state.extra as Map<String, dynamic>;
+        return RequestDetailsScreen(
+          swapId: data['swapId'],
+          ownerId: data['ownerId'],
+          borrowerId: data['borrowerId'],
+        );
+      },
+    ),
+
     GoRoute(
         path: '/forgot-password', builder: (_, __) => ResetPasswordScreen1()),
     GoRoute(path: '/Login', builder: (_, __) => LoginPage()),

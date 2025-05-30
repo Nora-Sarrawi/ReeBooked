@@ -71,6 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final _search = TextEditingController();
   String _gSel = 'Genre';
   String _lSel = 'Location';
+  String _searchQuery = '';
 
   @override
   void dispose() {
@@ -84,7 +85,51 @@ class _HomeScreenState extends State<HomeScreen> {
         .collection('books')
         .where('ownerId', isNotEqualTo: currentUid)
         .get();
-    return qs.docs.map(Book.fromDoc).toList();
+    List<Book> allBooks = qs.docs.map(Book.fromDoc).toList();
+
+    // Apply search filter
+    if (_searchQuery.trim().isNotEmpty) {
+      final query = _searchQuery.toLowerCase().trim();
+      allBooks = allBooks.where((book) {
+        final titleMatch = book.title.toLowerCase().contains(query);
+        final authorMatch = book.author.toLowerCase().contains(query);
+        return titleMatch || authorMatch;
+      }).toList();
+    }
+
+    // Apply genre filter
+    if (_gSel != 'Genre') {
+      allBooks = allBooks
+          .where((book) => book.genre.toLowerCase() == _gSel.toLowerCase())
+          .toList();
+    }
+
+    // Apply location filter
+    if (_lSel != 'Location') {
+      allBooks = allBooks
+          .where((book) => book.location.toLowerCase() == _lSel.toLowerCase())
+          .toList();
+    }
+
+    return allBooks;
+  }
+
+  void _onSearchChanged(String query) {
+    setState(() {
+      _searchQuery = query;
+    });
+  }
+
+  void _onGenreChanged(String genre) {
+    setState(() {
+      _gSel = genre;
+    });
+  }
+
+  void _onLocationChanged(String location) {
+    setState(() {
+      _lSel = location;
+    });
   }
 
   @override
@@ -96,47 +141,69 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: FutureBuilder<List<Book>>(
-          future: _fetchBooks(),
-          builder: (context, snap) {
-            if (snap.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snap.hasError || !snap.hasData || snap.data!.isEmpty) {
-              return const Center(child: Text('No books available.'));
-            }
-            final books = snap.data!;
-            return ListView.builder(
-              padding: AppPadding.screenPadding.copyWith(bottom: 96),
-              itemCount: books.length + 2, // header + filters + books
-              itemBuilder: (ctx, i) {
-                if (i == 0)
-                  return _Header(logoW: logoW, logoH: logoH, search: _search);
-                if (i == 1) {
-                  return _FilterRow(
+        child: Column(
+          children: [
+            Padding(
+              padding: AppPadding.screenPadding,
+              child: Column(
+                children: [
+                  _Header(logoW: logoW, logoH: logoH, search: _search),
+                  _FilterRow(
                     gSel: _gSel,
                     lSel: _lSel,
-                    onGenre: (v) => setState(() => _gSel = v),
-                    onLoc: (v) => setState(() => _lSel = v),
-                  );
-                }
-                final b = books[i - 2];
-                return Padding(
-                  padding: const EdgeInsets.only(top: 24),
-                  child: _BookCard(
-                    coverPath: b.coverPath,
-                    title: b.title,
-                    author: b.author,
-                    ownerName: b.ownerName,
-                    ownerAvatar: b.ownerAvatar,
-                    location: b.location,
-                    genre: b.genre,
-                    status: b.status,
+                    onGenre: _onGenreChanged,
+                    onLoc: _onLocationChanged,
                   ),
-                );
-              },
-            );
-          },
+                ],
+              ),
+            ),
+            Expanded(
+              child: FutureBuilder<List<Book>>(
+                future: _fetchBooks(),
+                builder: (context, snap) {
+                  if (snap.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snap.hasError || !snap.hasData || snap.data!.isEmpty) {
+                    return const Center(
+                      child: Text(
+                        'No books available.',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    );
+                  }
+                  final books = snap.data!;
+                  return ListView.builder(
+                    padding: AppPadding.screenPadding.copyWith(
+                      top: 24,
+                      bottom: 96,
+                    ),
+                    itemCount: books.length,
+                    itemBuilder: (ctx, i) {
+                      final b = books[i];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        child: _BookCard(
+                          coverPath: b.coverPath,
+                          title: b.title,
+                          author: b.author,
+                          ownerName: b.ownerName,
+                          ownerAvatar: b.ownerAvatar,
+                          location: b.location,
+                          genre: b.genre,
+                          status: b.status,
+                          id: b.id,
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -148,8 +215,11 @@ class _HomeScreenState extends State<HomeScreen> {
 /* ──────────────────────────────────────────────────────────── */
 
 class _Header extends StatelessWidget {
-  const _Header(
-      {required this.logoW, required this.logoH, required this.search});
+  const _Header({
+    required this.logoW,
+    required this.logoH,
+    required this.search,
+  });
   final double logoW, logoH;
   final TextEditingController search;
 
@@ -161,7 +231,12 @@ class _Header extends StatelessWidget {
         TextField(
           controller: search,
           textInputAction: TextInputAction.search,
-          onSubmitted: (q) => debugPrint('Search: $q'),
+          onChanged: (query) {
+            // Get the HomeScreen state and update search
+            final homeState =
+                context.findAncestorStateOfType<_HomeScreenState>();
+            homeState?._onSearchChanged(query);
+          },
           style: const TextStyle(color: Colors.white, fontSize: 16),
           cursorColor: Colors.white,
           decoration: InputDecoration(
@@ -226,7 +301,7 @@ class _FilterRow extends StatelessWidget {
       children: [
         Expanded(
             child:
-            _DropdownChip(value: gSel, items: _genres, onChanged: onGenre)),
+                _DropdownChip(value: gSel, items: _genres, onChanged: onGenre)),
         const SizedBox(width: 12),
         Expanded(
             child: _DropdownChip(
@@ -306,7 +381,7 @@ class _DropdownChipState extends State<_DropdownChip> {
             ),
           ),
           menuItemStyleData:
-          const MenuItemStyleData(padding: EdgeInsets.zero, height: 44),
+              const MenuItemStyleData(padding: EdgeInsets.zero, height: 44),
           items: widget.items.map((txt) {
             final last = txt == widget.items.last;
             return DropdownMenuItem<String>(
@@ -317,8 +392,8 @@ class _DropdownChipState extends State<_DropdownChip> {
                 decoration: last
                     ? null
                     : const BoxDecoration(
-                    border:
-                    Border(bottom: BorderSide(color: Colors.white24))),
+                        border:
+                            Border(bottom: BorderSide(color: Colors.white24))),
                 child: Text(txt,
                     style: const TextStyle(
                         color: Colors.white,
@@ -350,10 +425,11 @@ class _BookCard extends StatelessWidget {
     this.widthFactor = .80,
     this.cardHeight = 340,
     this.contentPadding = 16,
+    required this.id,
     super.key,
   });
 
-  final String coverPath, title, author, ownerName;
+  final String coverPath, title, author, ownerName, id;
   final String? ownerAvatar;
   final String location, genre;
   final BookStatus status;
@@ -376,13 +452,11 @@ class _BookCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double cardW =
-    (MediaQuery.of(context).size.width * widthFactor)
+    final double cardW = (MediaQuery.of(context).size.width * widthFactor)
         .clamp(212.0, 260.0)
         .toDouble();
 
-    final double cardH =
-    cardHeight.clamp(220.0, 400.0).toDouble();
+    final double cardH = cardHeight.clamp(220.0, 400.0).toDouble();
 
     return Align(
       alignment: Alignment.center,
@@ -391,7 +465,16 @@ class _BookCard extends StatelessWidget {
         height: cardH,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => context.go('/book-details'),
+          onTap: () => context.go('/book/$id', extra: {
+            'bookId': id,
+            'bookTitle': title,
+            'bookCover': coverPath,
+            'author': author,
+            'ownerName': ownerName,
+            'location': location,
+            'genre': genre,
+            'status': status,
+          }),
           child: Container(
             decoration: BoxDecoration(
                 color: AppColors.beige,
@@ -407,9 +490,9 @@ class _BookCard extends StatelessWidget {
                         top: Radius.circular(16), bottom: Radius.circular(16)),
                     child: coverPath.startsWith('http')
                         ? Image.network(coverPath,
-                        height: 160, width: 150, fit: BoxFit.cover)
+                            height: 160, width: 150, fit: BoxFit.cover)
                         : Image.asset(coverPath,
-                        height: 160, width: 150, fit: BoxFit.cover),
+                            height: 160, width: 150, fit: BoxFit.cover),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -455,7 +538,7 @@ class _BookCard extends StatelessWidget {
                 // status badge
                 Container(
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                       color: _statusColor().withOpacity(.2),
                       borderRadius: BorderRadius.circular(12)),
@@ -475,10 +558,10 @@ class _BookCard extends StatelessWidget {
                       radius: 15,
                       backgroundImage: ownerAvatar == null
                           ? const AssetImage('assets/images/book1.jpg')
-                      as ImageProvider
+                              as ImageProvider
                           : (ownerAvatar!.startsWith('http')
-                          ? NetworkImage(ownerAvatar!)
-                          : AssetImage(ownerAvatar!)),
+                              ? NetworkImage(ownerAvatar!)
+                              : AssetImage(ownerAvatar!)),
                     ),
                     const SizedBox(width: 6),
                     Expanded(

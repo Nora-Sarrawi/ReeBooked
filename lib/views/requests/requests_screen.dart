@@ -1,429 +1,430 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
-// Models
-class User {
-  final String name;
-  final String imageUrl;
-  final String bookTitle;
+import '../../core/theme.dart';
+import '../../widgets/primary_button.dart';
 
-  User({required this.name, required this.imageUrl, required this.bookTitle});
-
-  factory User.fromJson(Map<String, dynamic> json) => User(
-        name: json['name'],
-        imageUrl: json['imageUrl'],
-        bookTitle: json['bookTitle'],
-      );
-}
-
-class Note {
-  final String userName;
-  final String userImage;
-  final String text;
-
-  Note({required this.userName, required this.userImage, required this.text});
-
-  factory Note.fromJson(Map<String, dynamic> json) => Note(
-        userName: json['userName'],
-        userImage: json['userImage'],
-        text: json['text'],
-      );
-}
-
-class RequestDetails {
-  final User fromUser;
-  final User toUser;
-  final String status;
-  final List<Note> notes;
-
-  RequestDetails({
-    required this.fromUser,
-    required this.toUser,
-    required this.status,
-    required this.notes,
-  });
-
-  factory RequestDetails.fromJson(Map<String, dynamic> json) => RequestDetails(
-        fromUser: User.fromJson(json['fromUser']),
-        toUser: User.fromJson(json['toUser']),
-        status: json['status'],
-        notes: (json['notes'] as List).map((n) => Note.fromJson(n)).toList(),
-      );
-}
-
-// Simulated Service (replace with real backend)
-class RequestService {
-  static Future<RequestDetails> fetchRequestDetails() async {
-    await Future.delayed(const Duration(seconds: 1));
-    return RequestDetails(
-      fromUser: User(
-        name: "Masa Jaara",
-        imageUrl: "assets/images/profilePic1.png",
-        bookTitle: "Things we never got over",
-      ),
-      toUser: User(
-        name: "Nora Sarrawi",
-        imageUrl: "assets/images/profilePic2.png",
-        bookTitle: "This summer will be different",
-      ),
-      status: "Pending",
-      notes: [
-        Note(
-            userName: "Masa Jaara",
-            userImage: "assets/images/profilePic1.png",
-            text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit"),
-        Note(
-            userName: "Nora Sarrawi",
-            userImage: "assets/images/profilePic2.png",
-            text: "Lorem ipsum dolor sit amet, adipiscing elit"),
-      ],
-    );
-  }
-
-  static Future<void> addNote(String text) async {
-    await Future.delayed(const Duration(seconds: 1));
-    // Push note to backend
-  }
-
-  static Future<void> respondToRequest(bool agree) async {
-    await Future.delayed(const Duration(seconds: 1));
-    // Send response to backend
-  }
-}
-
-// UI Screen
 class RequestDetailsScreen extends StatefulWidget {
-  const RequestDetailsScreen({super.key});
+  final String swapId;
+  final String ownerId;
+  final String borrowerId;
+
+  const RequestDetailsScreen({
+    super.key,
+    required this.swapId,
+    required this.ownerId,
+    required this.borrowerId,
+  });
 
   @override
   State<RequestDetailsScreen> createState() => _RequestDetailsScreenState();
 }
 
 class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
-  late Future<RequestDetails> _requestFuture;
-  final TextEditingController _noteController = TextEditingController();
-  bool _isLoading = false;
-  bool _canSubmit = true;
+  Map<String, dynamic>? ownerUserData;
+  Map<String, dynamic>? borrowerUserData;
+  Map<String, dynamic>? ownerBookData;
+  Map<String, dynamic>? borrowerBookData;
+  String? status;
+  final TextEditingController noteController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _requestFuture = RequestService.fetchRequestDetails();
+    fetchUserData();
   }
 
-  void _submitNote() async {
-    final noteText = _noteController.text.trim();
-    if (noteText.isEmpty || noteText.length > 300 || !_canSubmit) return;
+  Future<void> fetchUserData() async {
+    final ownerSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.ownerId)
+        .get();
+    final borrowerSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(widget.borrowerId)
+        .get();
+    final swapSnapshot = await FirebaseFirestore.instance
+        .collection('swaps')
+        .doc(widget.swapId)
+        .get();
 
-    setState(() {
-      _isLoading = true;
-      _canSubmit = false;
-    });
+    final swapData = swapSnapshot.data();
 
-    await RequestService.addNote(noteText);
-    _noteController.clear();
+    Map<String, dynamic>? ownerBook;
+    Map<String, dynamic>? borrowerBook;
 
-    setState(() {
-      _requestFuture = RequestService.fetchRequestDetails();
-      _isLoading = false;
-    });
+    if (swapData != null) {
+      final ownerBookId = swapData['ownerBookId'] as String?;
+      final borrowerBookId = swapData['borrowerBookId'] as String?;
 
-    // Cooldown logic: re-enable after 1 minute
-    Timer(const Duration(minutes: 1), () {
-      if (mounted) {
-        setState(() {
-          _canSubmit = true;
-        });
+      if (ownerBookId != null) {
+        final ownerBookSnap = await FirebaseFirestore.instance
+            .collection('books')
+            .doc(ownerBookId)
+            .get();
+        ownerBook = ownerBookSnap.data();
       }
+
+      if (borrowerBookId != null) {
+        final borrowerBookSnap = await FirebaseFirestore.instance
+            .collection('books')
+            .doc(borrowerBookId)
+            .get();
+        borrowerBook = borrowerBookSnap.data();
+      }
+    }
+
+    setState(() {
+      ownerUserData = ownerSnapshot.data();
+      borrowerUserData = borrowerSnapshot.data();
+      ownerBookData = ownerBook;
+      borrowerBookData = borrowerBook;
+      status = swapData?['status'];
     });
   }
 
-  void _respond(bool agree) async {
-    setState(() => _isLoading = true);
-    await RequestService.respondToRequest(agree);
-    setState(() => _isLoading = false);
-    context.go('/swap-request');
+  Future<void> sendNote() async {
+    final message = noteController.text.trim();
+    if (message.isEmpty) return;
+
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final timestamp = Timestamp.now();
+
+    await FirebaseFirestore.instance
+        .collection('swaps')
+        .doc(widget.swapId)
+        .collection('notes')
+        .add({
+      'senderId': currentUserId,
+      'message': message,
+      'createdAt': timestamp,
+    });
+
+    noteController.clear();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          color: AppColors.secondary,
+          onPressed: () => context.go('/requests'),
+        ),
+        title: const Text(
+          'Swap Details',
+          style: TextStyle(color: AppColors.secondary, fontSize: 30),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: Colors.black,
+        centerTitle: false,
+        actions: [
+          if (status != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 35),
+              child: Container(
+                width: 100,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF7C873),
+                  border: Border.all(color: const Color(0xFFF7C873)),
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: Center(
+                  child: Text(
+                    status!,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFA45800),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: FutureBuilder<RequestDetails>(
-            future: _requestFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else if (!snapshot.hasData) {
-                return const Center(child: Text('No data found.'));
-              }
+        child: Container(
+          color: Colors.white,
+          child: Column(
+            children: [
+              const SizedBox(height: 40),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildUserProfile(ownerUserData, ownerBookData),
+                  _buildUserProfile(borrowerUserData, borrowerBookData),
+                ],
+              ),
+              const SizedBox(height: 60),
+              Expanded(
+                child: Container(
+                  color: Colors.white,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Notes:',
+                            style: TextStyle(
+                              color: AppColors.secondary,
+                              fontSize: 25,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Container(
+                          color: Colors.white,
+                          child: NotesList(
+                            swapId: widget.swapId,
+                            ownerId: widget.ownerId,
+                            borrowerId: widget.borrowerId,
+                            ownerUserData: ownerUserData ?? {},
+                            borrowerUserData: borrowerUserData ?? {},
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: TextField(
+                  controller: noteController,
+                  decoration: InputDecoration(
+                    hintText: 'Add Note ...',
+                    hintStyle: TextStyle(color: Colors.grey),
+                    contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(25),
+                      borderSide: BorderSide(color: AppColors.secondary),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(25),
+                      borderSide: BorderSide(color: AppColors.secondary, width: 2),
+                    ),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.send),
+                      color: AppColors.secondary,
+                      onPressed: sendNote,
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    PrimaryButton(
+                      onPressed: () async {
+                        await FirebaseFirestore.instance
+                            .collection('swaps')
+                            .doc(widget.swapId)
+                            .update({'status': 'Accepted'});
+                        setState(() {
+                          status = 'Accepted';
+                        });
+                      },
+                      text: 'Agree',
+                      width: 170,
+                      height: 50,
+                    ),
+                    PrimaryButton(
+                      onPressed: () async {
+                        await FirebaseFirestore.instance
+                            .collection('swaps')
+                            .doc(widget.swapId)
+                            .update({'status': 'Declined'});
+                        setState(() {
+                          status = 'Declined';
+                        });
+                      },
+                      text: 'Decline',
+                      width: 170,
+                      height: 50,
+                      color: AppColors.accent,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
 
-              final data = snapshot.data!;
-              return Column(
+    );
+  }
+
+  Widget _buildUserProfile(
+      Map<String, dynamic>? userData,
+      Map<String, dynamic>? bookData,
+      ) {
+    return Column(
+      children: [
+        CircleAvatar(
+          backgroundImage: (userData?['avatarUrl'] != null &&
+              userData!['avatarUrl'].toString().isNotEmpty)
+              ? NetworkImage(userData['avatarUrl'])
+              : const NetworkImage('https://i.imgur.com/BoN9kdC.png'),
+          radius: 30,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          userData?['displayName'] ?? '',
+          style: const TextStyle(
+              fontWeight: FontWeight.bold, color: AppColors.secondary , fontSize: 22),
+        ),
+        const SizedBox(height: 4),
+        if (bookData != null && bookData['title'] != null)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.book, size: 18, color: Colors.black),
+              const SizedBox(width: 4),
+              Text(
+                bookData['title'],
+                style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.black,
+                    fontStyle: FontStyle.italic),
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+}
+
+class NotesList extends StatefulWidget {
+  final String swapId;
+  final String ownerId;
+  final String borrowerId;
+  final Map<String, dynamic> ownerUserData;
+  final Map<String, dynamic> borrowerUserData;
+
+  const NotesList({
+    required this.swapId,
+    required this.ownerId,
+    required this.borrowerId,
+    required this.ownerUserData,
+    required this.borrowerUserData,
+  });
+
+  @override
+  State<NotesList> createState() => _NotesListState();
+}
+
+class _NotesListState extends State<NotesList> {
+  final ScrollController _scrollController = ScrollController();
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          0.0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('swaps')
+          .doc(widget.swapId)
+          .collection('notes')
+          .orderBy('createdAt', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox();
+
+        final notes = snapshot.data!.docs;
+        _scrollToBottom(); // scroll to bottom when new data comes
+
+        return ListView.separated(
+          controller: _scrollController,
+          reverse: true,
+          itemCount: notes.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          padding: const EdgeInsets.only(bottom: 8),
+          itemBuilder: (context, index) {
+            final note = notes[index].data()! as Map<String, dynamic>;
+            final user = note['senderId'] == widget.ownerId
+                ? widget.ownerUserData
+                : widget.borrowerUserData;
+
+            return Container(
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              padding: const EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.secondary, width: 2.0),
+                borderRadius: BorderRadius.circular(25),
+                color: Colors.white,
+              ),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Top Bar
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back,
-                            color: Color(0xFF562B56)),
-                        iconSize: 32,
-                        onPressed: () => context.go('/swap-request'),
-                      ),
-                      const Text(
-                        'Request Details',
-                        style: TextStyle(
-                          color: Color(0xFF562B56),
-                          fontSize: 25,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFEDB9C),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          data.status,
-                          style: const TextStyle(
-                            color: Color(0xFFA35800),
-                            fontSize: 16,
-                            fontFamily: 'Inter',
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                    ],
+                  CircleAvatar(
+                    radius: 25,
+                    backgroundImage: (user['avatarUrl'] != null &&
+                        user['avatarUrl'].toString().isNotEmpty)
+                        ? NetworkImage(user['avatarUrl'])
+                        : const NetworkImage(
+                        'https://i.imgur.com/BoN9kdC.png'),
                   ),
-                  const SizedBox(height: 24),
-
-                  // Users
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _userInfo(data.fromUser),
-                      _userInfo(data.toUser),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  const Text(
-                    'Notes:',
-                    style: TextStyle(
-                      color: Color(0xFF562B56),
-                      fontSize: 24,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Notes List
-                  SizedBox(
-                    height: 250,
-                    child: ListView(
-                      children: data.notes
-                          .map(
-                              (n) => _noteCard(n.userImage, n.userName, n.text))
-                          .toList(),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Note input
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF5F5F5),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: TextField(
-                      controller: _noteController,
-                      maxLength: 300,
-                      onSubmitted: (_) => _submitNote(),
-                      decoration: const InputDecoration(
-                        counterText: '',
-                        border: InputBorder.none,
-                        hintText: 'Add a note',
-                        hintStyle: TextStyle(
-                          color: Color(0xFFD9D9D9),
-                          fontSize: 24,
-                          fontFamily: 'Inter',
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Submit Button (instead of auto-submit for clarity)
-                  ElevatedButton(
-                    onPressed: _canSubmit && !_isLoading ? _submitNote : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF562B56),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'Submit Note',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontFamily: 'Inter',
-                      ),
-                    ),
-                  ),
-
-                  const Spacer(),
-
-                  // Agree / Decline
-                  if (_isLoading)
-                    const Center(child: CircularProgressIndicator())
-                  else
-                    Row(
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () => _respond(true),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF562B56),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                            child: const Text(
-                              'Agree',
-                              style: TextStyle(
-                                color: Color(0xFFEEEEEE),
-                                fontSize: 20,
-                                fontFamily: 'Inter',
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
+                        Text(
+                          user['displayName'] ?? '',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.secondary,
                           ),
                         ),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () => _respond(false),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFD1B2FF),
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                            child: const Text(
-                              'Decline',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontFamily: 'Inter',
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
+                        const SizedBox(height: 4),
+                        Text(
+                          note['message'] ?? '',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: AppColors.secondary,
                           ),
                         ),
                       ],
                     ),
-                ],
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _userInfo(User user) {
-    return Column(
-      children: [
-        CircleAvatar(backgroundImage: AssetImage(user.imageUrl), radius: 25),
-        const SizedBox(height: 4),
-        Text(
-          user.name,
-          style: const TextStyle(
-            color: Color(0xFF562B56),
-            fontSize: 21,
-            fontFamily: 'Inter',
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Row(
-          children: [
-            const Icon(Icons.menu_book, size: 14, color: Color(0xFF562B56)),
-            const SizedBox(width: 4),
-            Text(
-              user.bookTitle,
-              style: const TextStyle(
-                color: Color(0xFF562B56),
-                fontSize: 12.2,
-                fontFamily: 'Inter',
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _noteCard(String imgPath, String name, String comment) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFF562B56)),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(backgroundImage: AssetImage(imgPath), radius: 25),
-          const SizedBox(width: 12),
-          Expanded(
-            child: RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: '$name:\n',
-                    style: const TextStyle(
-                      color: Color(0xFF562B56),
-                      fontSize: 21,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w700,
-                    ),
                   ),
-                  TextSpan(
-                    text: comment,
-                    style: const TextStyle(
-                      color: Color(0xFF562B56),
-                      fontSize: 13.5,
-                      fontFamily: 'Inter',
-                      fontWeight: FontWeight.w700,
-                    ),
+                  const SizedBox(width: 8),
+                  Text(
+                    timeago.format((note['createdAt'] as Timestamp).toDate()),
+                    style: const TextStyle(fontSize: 10, color: Colors.grey),
                   ),
                 ],
               ),
-            ),
-          ),
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
   }
 }
