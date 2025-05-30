@@ -82,6 +82,7 @@ final GoRouter router = GoRouter(
             : null,
       ),
     ),
+
     GoRoute(
       path: '/book/:bookId',
       name: 'bookDetails',
@@ -108,5 +109,17 @@ final GoRouter router = GoRouter(
     GoRoute(path: '/Login', builder: (_, __) => LoginPage()),
     GoRoute(path: '/Signup', builder: (_, __) => CreateAccountScreen()),
     GoRoute(path: '/swap-request', builder: (_, __) => SwapRequestsScreen()),
+    GoRoute(
+      name: 'swapDetailsById',
+      path: '/swapDetails/:swapId',
+      builder: (context, state) {
+        final swapId = state.pathParameters['swapId']!;
+        return RequestDetailsScreen(
+          swapId: swapId,
+          ownerId: '', // fetched inside the screen
+          borrowerId: '', // fetched inside the screen
+        );
+      },
+    ),
   ],
 );

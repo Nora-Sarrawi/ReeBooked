@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../core/theme.dart';
+import 'package:go_router/go_router.dart';
+import 'package:rebooked_app/models/notifications_summary.dart';
+import 'package:rebooked_app/services/notification_service.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
-/*───────────────────────────────────────────────────────────────────────────*/
-/*  MAIN SCREEN                                                             */
-/*───────────────────────────────────────────────────────────────────────────*/
+import '../../core/theme.dart';
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
@@ -36,8 +37,6 @@ class NotificationsScreen extends StatelessWidget {
               ),
             ),
           ),
-
-          /*── tabs (General • Read) ──*/
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(55),
             child: Row(
@@ -54,11 +53,13 @@ class NotificationsScreen extends StatelessWidget {
                     ),
                     tabs: const [
                       Align(
-                          alignment: Alignment.center,
-                          child: Tab(text: 'General')),
+                        alignment: Alignment.center,
+                        child: Tab(text: 'All'),
+                      ),
                       Align(
-                          alignment: Alignment.center,
-                          child: Tab(text: 'Read')),
+                        alignment: Alignment.center,
+                        child: Tab(text: 'Unread'),
+                      ),
                     ],
                   ),
                 ),
@@ -66,13 +67,11 @@ class NotificationsScreen extends StatelessWidget {
             ),
           ),
         ),
-
-        /*── tab pages ──*/
         body: const TabBarView(
           physics: BouncingScrollPhysics(),
           children: [
-            _NotifList(tab: NotifTab.general),
-            _NotifList(tab: NotifTab.read),
+            _SummaryList(onlyUnread: false),
+            _SummaryList(onlyUnread: true),
           ],
         ),
       ),
@@ -80,252 +79,84 @@ class NotificationsScreen extends StatelessWidget {
   }
 }
 
-/*───────────────────────────────────────────────────────────────────────────*/
-/*  Dummy model & list                                                      */
-/*───────────────────────────────────────────────────────────────────────────*/
+class _SummaryList extends StatelessWidget {
+  final bool onlyUnread;
 
-enum NotifTab { general, read }
 
-class Notif {
-  final String title;
-  final String body;
-  final String avatar;
-  final int badge;
-  final String time;
-
-  const Notif({
-    required this.title,
-    required this.body,
-    required this.avatar,
-    required this.badge,
-    required this.time,
-  });
-}
-
-const _dummy = [
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person1.webp',
-      badge: 2,
-      time: '1 m ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person2.jpg',
-      badge: 10,
-      time: '10 h ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person1.webp',
-      badge: 2,
-      time: '1 m ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person2.jpg',
-      badge: 10,
-      time: '10 h ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person1.webp',
-      badge: 2,
-      time: '1 m ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person2.jpg',
-      badge: 10,
-      time: '10 h ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person1.webp',
-      badge: 2,
-      time: '1 m ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person2.jpg',
-      badge: 10,
-      time: '10 h ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person1.webp',
-      badge: 2,
-      time: '1 m ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person2.jpg',
-      badge: 10,
-      time: '10 h ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person1.webp',
-      badge: 2,
-      time: '1 m ago'),
-  Notif(
-      title: 'SALE IS LIVE',
-      body:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit dolor sit amet.',
-      avatar: 'assets/images/person2.jpg',
-      badge: 10,
-      time: '10 h ago'),
-];
-
-/*───────────────────────────────────────────────────────────────────────────*/
-/*  List wrapper                                                            */
-/*───────────────────────────────────────────────────────────────────────────*/
-
-class _NotifList extends StatelessWidget {
-  const _NotifList({required this.tab});
-
-  final NotifTab tab;
+  const _SummaryList({super.key, required this.onlyUnread});
 
   @override
   Widget build(BuildContext context) {
-    final list = _dummy; // later fetch from backend
-
-    return ListView.separated(
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
-      itemCount: list.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 20),
-      itemBuilder: (context, i) => _NotifTile(
-        data: list[i],
-        showBadge: tab == NotifTab.general, // ★ NEW
-      ),
-    );
-  }
-}
-
-/*───────────────────────────────────────────────────────────────────────────*/
-/*  Single tile                                                             */
-/*───────────────────────────────────────────────────────────────────────────*/
-
-class _NotifTile extends StatelessWidget {
-  const _NotifTile({
-    required this.data,
-    required this.showBadge, // ★ NEW
-  });
-
-  final Notif data;
-  final bool showBadge; // ★ NEW
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _AvatarWithBadge(data: data, showBadge: showBadge),
-        const SizedBox(width: 12),
-
-        /* text block */
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                data.title,
-                style: const TextStyle(
-                  fontFamily: 'Outfit',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.secondary,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                data.body,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontFamily: 'Outfit',
-                  fontSize: 10,
-                  color: AppColors.secondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        /* time stamp */
-        const SizedBox(width: 8),
-        Text(
-          data.time,
-          style: const TextStyle(
-            fontFamily: 'Outfit',
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: AppColors.accent,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/*───────────────────────────────────────────────────────────────────────────*/
-/*  Avatar + badge                                                          */
-/*───────────────────────────────────────────────────────────────────────────*/
-
-class _AvatarWithBadge extends StatelessWidget {
-  const _AvatarWithBadge({
-    required this.data,
-    required this.showBadge, // ★ NEW
-  });
-
-  final Notif data;
-  final bool showBadge; // ★ NEW
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        CircleAvatar(
-          radius: 21,
-          backgroundColor: AppColors.secondary,
-          child: CircleAvatar(
-            radius: 19,
-            backgroundImage: AssetImage(data.avatar),
-          ),
-        ),
-        if (showBadge && data.badge > 0) // ★ NEW
-          Positioned(
-            right: -4,
-            top: -4,
-            child: CircleAvatar(
-              radius: 11,
-              backgroundColor: AppColors.accent,
-              child: Text(
-                '${data.badge}',
-                style: const TextStyle(
-                  fontFamily: 'Outfit',
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
+    return StreamBuilder<List<SwapNotificationSummary>>(
+      stream: NotificationService().streamSummaries(),
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final list = snap.data
+                ?.where((s) => !onlyUnread || s.unreadCount > 0)
+                .toList() ??
+            [];
+        if (list.isEmpty) {
+          return const Center(
+            child: Text(
+              'No notifications.',
+              style: TextStyle(color: AppColors.secondary),
             ),
-          ),
-      ],
+          );
+        }
+        return ListView.separated(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+          itemCount: list.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 20),
+          itemBuilder: (context, i) {
+            final s = list[i];
+            return ListTile(
+              onTap: () => context.go('/swapDetails/${s.swapId}'),
+              leading: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  CircleAvatar(
+                    radius: 21,
+                    backgroundImage: NetworkImage(s.senderAvatarUrl),
+                  ),
+                  if (s.unreadCount > 1)
+                    Positioned(
+                      right: -4,
+                      top: -4,
+                      child: CircleAvatar(
+                        radius: 11,
+                        backgroundColor: AppColors.accent,
+                        child: Text(
+                          '${s.unreadCount}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              title: Text(
+                s.senderName,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              subtitle: Text(
+                s.lastMessage,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: Text(
+                timeago.format(s.lastTimestamp),
+                style: const TextStyle(color: AppColors.accent),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
