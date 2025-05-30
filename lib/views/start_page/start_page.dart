@@ -10,9 +10,9 @@ class StartScreen extends StatelessWidget {
     final size = MediaQuery.of(context).size;
 
     // responsive numbers
-    final double logoW = size.width * 0.65; // 65 % of width
+    final double logoW = size.width * 0.65; // 65 % of width
     final double logoH = logoW * 1.12; // keep aspect
-    final double btnW = size.width * 0.45; // 45 % of width
+    final double btnW = size.width * 0.45; // 45 % of width
     final double titleF = (size.width * 0.10).clamp(32, 48);
     final double tagF = (size.width * 0.04).clamp(12, 18);
     final double btnF = (size.width * 0.07).clamp(20, 30);
@@ -85,8 +85,7 @@ class StartScreen extends StatelessWidget {
                 height: kMinInteractiveDimension,
                 child: ElevatedButton(
                   onPressed: () {
-                    context.go(
-                        '/signup'); // or whatever route you want to start with
+                    context.go('/Login');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF7C873),

@@ -30,12 +30,12 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login successful!')),
         );
-      context.go('/home');
+        context.go('/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Invalid email or password')),
         );
-      } 
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.toString())),
@@ -137,6 +137,8 @@ class _LoginPageState extends State<LoginPage> {
                     controller: _emailController,
                     decoration: const InputDecoration(
                       border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
                       hintText: 'Email',
                       hintStyle: TextStyle(
                         color: Color(0xFF562B56),
@@ -172,6 +174,8 @@ class _LoginPageState extends State<LoginPage> {
                     obscureText: true,
                     decoration: const InputDecoration(
                       border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
                       hintText: 'Enter your password',
                       hintStyle: TextStyle(
                         color: Color(0xFF562B56),
@@ -202,18 +206,18 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                          Color(0xFFF2E9DC)),
-                    )
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                Color(0xFFF2E9DC)),
+                          )
                         : const Text(
-                      'Login now',
-                      style: TextStyle(
-                        color: Color(0xFFF2E9DC),
-                        fontSize: 16,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                            'Login now',
+                            style: TextStyle(
+                              color: Color(0xFFF2E9DC),
+                              fontSize: 16,
+                              fontFamily: 'Poppins',
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                   ),
                 ),
               ),
@@ -226,7 +230,7 @@ class _LoginPageState extends State<LoginPage> {
                   height: 32,
                   child: TextButton(
                     onPressed: () {
-                      // Add password reset logic or navigation here
+                      context.push('/forgot-password');
                     },
                     child: const Text(
                       'Forgot your password?',
@@ -273,7 +277,8 @@ class _LoginPageState extends State<LoginPage> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => const CreateAccountScreen()),
+                                    builder: (context) =>
+                                        const CreateAccountScreen()),
                               );
                             },
                         ),
@@ -288,6 +293,4 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-
 }
- 

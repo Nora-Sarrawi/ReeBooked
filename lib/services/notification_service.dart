@@ -65,8 +65,4 @@ class NotificationService {
         .doc(notificationId)
         .update({'read': true});
   }
-
-  // Mark as read
-  Future<void> markAsRead(String id) =>
-      _db.collection('notifications').doc(id).update({'read': true});
 }
