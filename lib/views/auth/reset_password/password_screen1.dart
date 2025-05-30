@@ -86,7 +86,7 @@ class ResetPasswordScreen1 extends StatelessWidget {
                     SizedBox(height: screenHeight * 0.18),
                     Center(
                       child: PrimaryButton(
-                        text: 'Send Code',
+                        text: 'Send ',
                         color: AppColors.secondary,
                         onPressed: () {
                           context.go('reset-password2');
