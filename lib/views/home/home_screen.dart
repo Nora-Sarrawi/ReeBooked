@@ -14,7 +14,7 @@ import '../../utils/content_wrapper.dart'; // MaxWidthBox helper
 /*  tiny helper – removes ellipsis + all whitespace in URLs    */
 /* ──────────────────────────────────────────────────────────── */
 String _cleanUrl(String raw) => raw
-    .replaceAll('\u2026', '') // kill “…” character
+    .replaceAll('\u2026', '') // kill "…" character
     .replaceAll(RegExp(r'\s'), '') // trim spaces / newlines / tabs
     .trim();
 
@@ -85,6 +85,9 @@ class _HomeScreenState extends State<HomeScreen> {
   String _lSel = 'Location';
   String _searchQuery = '';
 
+  // Add constants for logo dimensions
+  static const double logoW = 120.0;
+  static const double logoH = 40.0;
 
   @override
   void dispose() {
@@ -214,7 +217,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ],
-
         ),
       ),
     );
@@ -244,7 +246,6 @@ class _Header extends StatelessWidget {
           controller: search,
           textInputAction: TextInputAction.search,
           onChanged: (query) {
-            // Get the HomeScreen state and update search
             final homeState =
                 context.findAncestorStateOfType<_HomeScreenState>();
             homeState?._onSearchChanged(query);
@@ -265,12 +266,11 @@ class _Header extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(60),
               borderSide: BorderSide(color: AppColors.accent, width: 1),
-
             ),
           ),
-          const SizedBox(height: 20),
-        ],
-      ),
+        ),
+        const SizedBox(height: 20),
+      ],
     );
   }
 }
@@ -308,34 +308,30 @@ class _FilterRow extends StatelessWidget {
     'Jenin'
   ];
 
+  static const double _chipWidth = 120.0;
+
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(
-            child:
-                _DropdownChip(value: gSel, items: _genres, onChanged: onGenre)),
+          child: _DropdownChip(
+            width: _chipWidth,
+            value: gSel,
+            items: _genres,
+            onChanged: onGenre,
+          ),
+        ),
         const SizedBox(width: 12),
         Expanded(
-
-            child: _DropdownChip(
-              width: chipW,
-              value: gSel,
-              items: _genres,
-              onChanged: onGenre,
-            ),
+          child: _DropdownChip(
+            width: _chipWidth,
+            value: lSel,
+            items: _locations,
+            onChanged: onLoc,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _DropdownChip(
-              width: chipW,
-              value: lSel,
-              items: _locations,
-              onChanged: onLoc,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -440,7 +436,6 @@ class _DropdownChipState extends State<_DropdownChip> {
                         color: Colors.white,
                         fontSize: 15,
                         fontWeight: FontWeight.w600)),
-
               ),
             );
           }).toList(),
@@ -521,12 +516,10 @@ class _BookCard extends StatelessWidget {
     this.widthFactor = .80,
     this.cardHeight = 340,
     this.contentPadding = 16,
-    required this.id,
     super.key,
   });
 
   final String coverPath, title, author, ownerName, id;
-
   final String? ownerAvatar;
   final String location, genre;
   final BookStatus status;
@@ -555,7 +548,6 @@ class _BookCard extends StatelessWidget {
 
     final double cardH = cardHeight.clamp(220.0, 400.0).toDouble();
 
-
     return Align(
       alignment: Alignment.center,
       child: SizedBox(
@@ -573,7 +565,6 @@ class _BookCard extends StatelessWidget {
             'genre': genre,
             'status': status,
           }),
-
           child: Container(
             decoration: BoxDecoration(
               color: AppColors.beige,
@@ -594,7 +585,6 @@ class _BookCard extends StatelessWidget {
                         : Image.asset(coverPath,
                             height: 160, width: 150, fit: BoxFit.cover),
                   ),
-
                 ),
                 const SizedBox(height: 12),
                 Padding(
@@ -656,20 +646,21 @@ class _BookCard extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.only(
                       left: contentPadding, right: 12, bottom: 16),
-                  child: Row(children: [
-                    CircleAvatar(
-                      radius: 15,
-                      backgroundImage: ownerAvatar == null
-                          ? const AssetImage('assets/images/book1.jpg')
-                              as ImageProvider
-                          : (ownerAvatar!.startsWith('http')
-                              ? NetworkImage(ownerAvatar!)
-                              : AssetImage(ownerAvatar!)),
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(ownerName,
-
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 15,
+                        backgroundImage: ownerAvatar == null
+                            ? const AssetImage('assets/images/book1.jpg')
+                                as ImageProvider
+                            : (ownerAvatar!.startsWith('http')
+                                ? NetworkImage(ownerAvatar!)
+                                : AssetImage(ownerAvatar!)),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          ownerName,
                           style: Theme.of(context).textTheme.bodyMedium,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -685,7 +676,6 @@ class _BookCard extends StatelessWidget {
     );
   }
 }
-
 
 /* ──────────────────────────────────────────────────────────── */
 /*  Phone layout                                               */
@@ -712,7 +702,13 @@ class _PhoneLayout extends StatelessWidget {
       padding: AppPadding.screenPadding.copyWith(bottom: 96),
       itemCount: books.length + 2,
       itemBuilder: (ctx, i) {
-        if (i == 0) return _Header(search: search);
+        if (i == 0) {
+          return _Header(
+            logoW: _HomeScreenState.logoW,
+            logoH: _HomeScreenState.logoH,
+            search: search,
+          );
+        }
         if (i == 1) {
           return _FilterRow(
             gSel: gSel,
@@ -725,6 +721,7 @@ class _PhoneLayout extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.only(top: 16),
           child: _BookCard(
+            id: b.id,
             coverPath: b.coverPath,
             title: b.title,
             author: b.author,
@@ -763,7 +760,13 @@ class _WideLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: [
-        SliverToBoxAdapter(child: _Header(search: search)),
+        SliverToBoxAdapter(
+          child: _Header(
+            logoW: _HomeScreenState.logoW,
+            logoH: _HomeScreenState.logoH,
+            search: search,
+          ),
+        ),
         SliverToBoxAdapter(
           child: _FilterRow(
             gSel: gSel,
@@ -777,6 +780,7 @@ class _WideLayout extends StatelessWidget {
           sliver: SliverGrid(
             delegate: SliverChildBuilderDelegate(
               (ctx, i) => _BookCard(
+                id: books[i].id,
                 coverPath: books[i].coverPath,
                 title: books[i].title,
                 author: books[i].author,
@@ -789,11 +793,9 @@ class _WideLayout extends StatelessWidget {
               childCount: books.length,
             ),
             gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 280, // unchanged
+              maxCrossAxisExtent: 280,
               crossAxisSpacing: 16,
               mainAxisSpacing: 20,
-              //  ➜ give the cards a hair more vertical space;
-              //    0.65 looks good on 212-280 px widths
               childAspectRatio: 0.65,
             ),
           ),
