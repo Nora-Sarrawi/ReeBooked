@@ -124,6 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 return Padding(
                   padding: const EdgeInsets.only(top: 24),
                   child: _BookCard(
+                    id: b.id,
                     coverPath: b.coverPath,
                     title: b.title,
                     author: b.author,
@@ -339,6 +340,7 @@ class _DropdownChipState extends State<_DropdownChip> {
 
 class _BookCard extends StatelessWidget {
   const _BookCard({
+    required this.id,
     required this.coverPath,
     required this.title,
     required this.author,
@@ -353,6 +355,7 @@ class _BookCard extends StatelessWidget {
     super.key,
   });
 
+  final String id;
   final String coverPath, title, author, ownerName;
   final String? ownerAvatar;
   final String location, genre;
@@ -391,7 +394,7 @@ class _BookCard extends StatelessWidget {
         height: cardH,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => context.go('/book-details'),
+          onTap: () => context.go('/book/${id}'),
           child: Container(
             decoration: BoxDecoration(
                 color: AppColors.beige,
