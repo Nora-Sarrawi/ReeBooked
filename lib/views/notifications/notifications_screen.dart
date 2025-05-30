@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:rebooked_app/models/notification_model.dart';
+import 'package:go_router/go_router.dart';
+import 'package:rebooked_app/models/notifications_summary.dart';
 import 'package:rebooked_app/services/notification_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../core/theme.dart';
-
-/*───────────────────────────────────────────────────────────────────────────*/
-/*  MAIN SCREEN                                                             */
-/*───────────────────────────────────────────────────────────────────────────*/
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
@@ -40,8 +37,6 @@ class NotificationsScreen extends StatelessWidget {
               ),
             ),
           ),
-
-          /*── tabs (General • Read) ──*/
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(55),
             child: Row(
@@ -58,11 +53,13 @@ class NotificationsScreen extends StatelessWidget {
                     ),
                     tabs: const [
                       Align(
-                          alignment: Alignment.center,
-                          child: Tab(text: 'General')),
+                        alignment: Alignment.center,
+                        child: Tab(text: 'All'),
+                      ),
                       Align(
-                          alignment: Alignment.center,
-                          child: Tab(text: 'Read')),
+                        alignment: Alignment.center,
+                        child: Tab(text: 'Unread'),
+                      ),
                     ],
                   ),
                 ),
@@ -70,13 +67,11 @@ class NotificationsScreen extends StatelessWidget {
             ),
           ),
         ),
-
-        /*── tab pages ──*/
         body: const TabBarView(
           physics: BouncingScrollPhysics(),
           children: [
-            _NotifList(tab: NotifTab.general),
-            _NotifList(tab: NotifTab.read),
+            _SummaryList(onlyUnread: false),
+            _SummaryList(onlyUnread: true),
           ],
         ),
       ),
@@ -84,54 +79,28 @@ class NotificationsScreen extends StatelessWidget {
   }
 }
 
-/*───────────────────────────────────────────────────────────────────────────*/
-/*  Dummy model & list                                                      */
-/*───────────────────────────────────────────────────────────────────────────*/
+class _SummaryList extends StatelessWidget {
+  final bool onlyUnread;
 
-enum NotifTab { general, read }
 
-class Notif {
-  final String title;
-  final String body;
-  final String avatar;
-  final int badge;
-  final String time;
-
-  const Notif({
-    required this.title,
-    required this.body,
-    required this.avatar,
-    required this.badge,
-    required this.time,
-  });
-}
-
-/*───────────────────────────────────────────────────────────────────────────*/
-/*  List wrapper                                                            */
-/*───────────────────────────────────────────────────────────────────────────*/
-
-class _NotifList extends StatelessWidget {
-  const _NotifList({required this.tab});
-  final NotifTab tab;
+  const _SummaryList({super.key, required this.onlyUnread});
 
   @override
   Widget build(BuildContext context) {
-    final service = NotificationService();
-    final stream = service.streamNotifications(
-      onlyUnread: tab == NotifTab.general,
-    );
-
-    return StreamBuilder<List<SwapNotification>>(
-      stream: stream,
+    return StreamBuilder<List<SwapNotificationSummary>>(
+      stream: NotificationService().streamSummaries(),
       builder: (context, snap) {
         if (snap.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        final list = snap.data ?? [];
+        final list = snap.data
+                ?.where((s) => !onlyUnread || s.unreadCount > 0)
+                .toList() ??
+            [];
         if (list.isEmpty) {
           return const Center(
             child: Text(
-              'No notifications yet.',
+              'No notifications.',
               style: TextStyle(color: AppColors.secondary),
             ),
           );
@@ -142,136 +111,52 @@ class _NotifList extends StatelessWidget {
           itemCount: list.length,
           separatorBuilder: (_, __) => const SizedBox(height: 20),
           itemBuilder: (context, i) {
-            final n = list[i];
-            return _NotifTile(
-              data: Notif(
-                // adapt your _NotifTile to accept SwapNotification
-                title: 'Swap ${n.requestId}',
-                body: n.text,
-                avatar: 'assets/images/notification.png',
-                badge: 0,
-                time: timeago.format(n.createdAt),
+            final s = list[i];
+            return ListTile(
+              onTap: () => context.go('/swapDetails/${s.swapId}'),
+              leading: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  CircleAvatar(
+                    radius: 21,
+                    backgroundImage: NetworkImage(s.senderAvatarUrl),
+                  ),
+                  if (s.unreadCount > 1)
+                    Positioned(
+                      right: -4,
+                      top: -4,
+                      child: CircleAvatar(
+                        radius: 11,
+                        backgroundColor: AppColors.accent,
+                        child: Text(
+                          '${s.unreadCount}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-              showBadge: tab == NotifTab.general && !n.read,
+              title: Text(
+                s.senderName,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              subtitle: Text(
+                s.lastMessage,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: Text(
+                timeago.format(s.lastTimestamp),
+                style: const TextStyle(color: AppColors.accent),
+              ),
             );
           },
         );
       },
-    );
-  }
-}
-
-/*───────────────────────────────────────────────────────────────────────────*/
-/*  Single tile                                                             */
-/*───────────────────────────────────────────────────────────────────────────*/
-
-class _NotifTile extends StatelessWidget {
-  const _NotifTile({
-    required this.data,
-    required this.showBadge, // ★ NEW
-  });
-
-  final Notif data;
-  final bool showBadge; // ★ NEW
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _AvatarWithBadge(data: data, showBadge: showBadge),
-        const SizedBox(width: 12),
-
-        /* text block */
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                data.title,
-                style: const TextStyle(
-                  fontFamily: 'Outfit',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.secondary,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                data.body,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontFamily: 'Outfit',
-                  fontSize: 10,
-                  color: AppColors.secondary,
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        /* time stamp */
-        const SizedBox(width: 8),
-        Text(
-          data.time,
-          style: const TextStyle(
-            fontFamily: 'Outfit',
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: AppColors.accent,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/*───────────────────────────────────────────────────────────────────────────*/
-/*  Avatar + badge                                                          */
-/*───────────────────────────────────────────────────────────────────────────*/
-
-class _AvatarWithBadge extends StatelessWidget {
-  const _AvatarWithBadge({
-    required this.data,
-    required this.showBadge, // ★ NEW
-  });
-
-  final Notif data;
-  final bool showBadge; // ★ NEW
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        CircleAvatar(
-          radius: 21,
-          backgroundColor: AppColors.secondary,
-          child: CircleAvatar(
-            radius: 19,
-            backgroundImage: AssetImage(data.avatar),
-          ),
-        ),
-        if (showBadge && data.badge > 0) // ★ NEW
-          Positioned(
-            right: -4,
-            top: -4,
-            child: CircleAvatar(
-              radius: 11,
-              backgroundColor: AppColors.accent,
-              child: Text(
-                '${data.badge}',
-                style: const TextStyle(
-                  fontFamily: 'Outfit',
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-      ],
     );
   }
 }

@@ -131,6 +131,25 @@ class _HomeScreenState extends State<HomeScreen> {
                     onGenre: (v) => setState(() => _gSel = v),
                     onLoc: (v) => setState(() => _lSel = v),
                   );
+                }
+                final b = books[i - 2];
+                return Padding(
+                  padding: const EdgeInsets.only(top: 24),
+                  child: _BookCard(
+                    id: b.id,
+                    coverPath: b.coverPath,
+                    title: b.title,
+                    author: b.author,
+                    ownerName: b.ownerName,
+                    ownerAvatar: b.ownerAvatar,
+                    location: b.location,
+                    genre: b.genre,
+                    status: b.status,
+                  ),
+                );
+              },
+            );
+
           },
         ),
       ),
@@ -421,6 +440,7 @@ class _CoverImage extends StatelessWidget {
 
 class _BookCard extends StatelessWidget {
   const _BookCard({
+    required this.id,
     required this.coverPath,
     required this.title,
     required this.author,
@@ -435,6 +455,7 @@ class _BookCard extends StatelessWidget {
     super.key,
   });
 
+  final String id;
   final String coverPath, title, author, ownerName;
   final String? ownerAvatar;
   final String location, genre;
@@ -478,7 +499,7 @@ class _BookCard extends StatelessWidget {
         height: cardH,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => context.go('/book-details'),
+          onTap: () => context.go('/book/${id}'),
           child: Container(
             decoration: BoxDecoration(
               color: AppColors.beige,

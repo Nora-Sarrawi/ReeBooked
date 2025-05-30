@@ -2,12 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:rxdart/rxdart.dart';
 
 // ===== MODEL =====
 class SwapRequest {
   final String id;
-  final String name;
-  final String imagePath;
+  final String name;           // اسم الكتاب (Owner Book Title)
+  final String coverUrl;      // مسار الصورة (Asset أو URL حسب التطبيق)
   final String requestMessage;
   final String status;
   final String borrowerId;
@@ -16,7 +17,7 @@ class SwapRequest {
   SwapRequest({
     required this.id,
     required this.name,
-    required this.imagePath,
+    required this.coverUrl,
     required this.requestMessage,
     required this.status,
     required this.borrowerId,
@@ -28,7 +29,7 @@ class SwapRequest {
     return SwapRequest(
       id: doc.id,
       name: data['name'] ?? '',
-      imagePath: data['imagePath'] ?? '',
+      coverUrl: data['imagePath'] ?? '',
       requestMessage: data['requestMessage'] ?? '',
       status: data['status'] ?? '',
       borrowerId: data['borrowerId'] ?? '',
@@ -94,33 +95,56 @@ class RequestTab extends StatelessWidget {
 
   RequestTab({required this.type});
 
-  Stream<QuerySnapshot> getRequestStream(String userId) {
+  // تابع لجلب البيانات من Firestore حسب نوع التبويب
+  Stream<List<SwapRequest>> getRequestStream(String userId) {
     final swaps = FirebaseFirestore.instance.collection('swaps');
+
     if (type == 'incoming') {
       return swaps
           .where('ownerId', isEqualTo: userId)
           .where('status', isEqualTo: 'pending')
-          .snapshots();
+          .snapshots()
+          .map((snapshot) =>
+          snapshot.docs.map((doc) => SwapRequest.fromFirestore(doc)).toList());
     } else if (type == 'outgoing') {
       return swaps
           .where('borrowerId', isEqualTo: userId)
           .where('status', isEqualTo: 'pending')
-          .snapshots();
+          .snapshots()
+          .map((snapshot) =>
+          snapshot.docs.map((doc) => SwapRequest.fromFirestore(doc)).toList());
     } else {
-      return swaps
+      final ownerStream = swaps
+          .where('ownerId', isEqualTo: userId)
           .where('status', whereIn: ['accepted', 'declined'])
-          .where(Filter.or(
-            Filter('ownerId', isEqualTo: userId),
-            Filter('borrowerId', isEqualTo: userId),
-          ))
           .snapshots();
+
+      final borrowerStream = swaps
+          .where('borrowerId', isEqualTo: userId)
+          .where('status', whereIn: ['accepted', 'declined'])
+          .snapshots();
+
+      return Rx.combineLatest2<QuerySnapshot<Map<String, dynamic>>, QuerySnapshot<Map<String, dynamic>>, List<SwapRequest>>(
+        ownerStream,
+        borrowerStream,
+            (ownerSnap, borrowerSnap) {
+          final combinedDocs = [...ownerSnap.docs, ...borrowerSnap.docs];
+          final uniqueDocs = {
+            for (var doc in combinedDocs) doc.id: doc,
+          }.values.toList();
+
+          return uniqueDocs.map((doc) => SwapRequest.fromFirestore(doc)).toList();
+        },
+      );
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
-    return StreamBuilder<QuerySnapshot>(
+
+    return StreamBuilder<List<SwapRequest>>(
       stream: getRequestStream(userId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -128,13 +152,11 @@ class RequestTab extends StatelessWidget {
               child: CircularProgressIndicator(color: Color(0xFF562B56)));
         } else if (snapshot.hasError) {
           return Center(child: Text("Error loading $type requests"));
-        } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return Center(child: Text("No $type requests"));
         }
 
-        final requests = snapshot.data!.docs
-            .map((doc) => SwapRequest.fromFirestore(doc))
-            .toList();
+        final requests = snapshot.data!;
 
         return ListView.builder(
           padding: EdgeInsets.all(16),
@@ -149,6 +171,16 @@ class RequestTab extends StatelessWidget {
   }
 }
 
+
+
+extension CombineLatestExtension<T> on Stream<T> {
+  Stream<R> combineLatest<S, R>(
+      Stream<S> other,
+      R Function(T, S) combiner,
+      ) =>
+      Rx.combineLatest2(this, other, combiner);
+}
+
 // ===== GENERAL REQUEST WIDGET (Shared by all tabs) =====
 class SwapRequestWidget extends StatelessWidget {
   final SwapRequest request;
@@ -161,14 +193,25 @@ class SwapRequestWidget extends StatelessWidget {
       children: [
         InkWell(
           onTap: () {
-            context.go('/request-details');
+            context.goNamed(
+              'requestDetails',
+              extra: {
+                'swapId': request.id,
+                'ownerId': request.ownerId,
+                'borrowerId': request.borrowerId,
+                //'ownerBookId': "mmm",
+                //'borrowerBookId': "aaa",
+              },
+            );
           },
+
+
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
                 radius: 24,
-                backgroundImage: AssetImage(request.imagePath),
+                backgroundImage: AssetImage(request.coverUrl),
               ),
               SizedBox(width: 12),
               Expanded(
