@@ -114,7 +114,7 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           color: AppColors.secondary,
-          onPressed: () => context.go('/requests'),
+          onPressed: () => context.go('/swap-request'),
         ),
         title: const Text(
           'Swap Details',
