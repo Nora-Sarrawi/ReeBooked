@@ -106,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final books = await Future.wait(qs.docs.map((doc) async {
       final data = doc.data();
       final ownerId = data['ownerId'] as String?;
-      
+
       if (ownerId == null) {
         return Book.fromDoc(doc);
       }
@@ -125,13 +125,11 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }));
 
-    return books;
-    List<Book> allBooks = qs.docs.map(Book.fromDoc).toList();
-
     // Apply search filter
+    List<Book> filteredBooks = books;
     if (_searchQuery.trim().isNotEmpty) {
       final query = _searchQuery.toLowerCase().trim();
-      allBooks = allBooks.where((book) {
+      filteredBooks = filteredBooks.where((book) {
         final titleMatch = book.title.toLowerCase().contains(query);
         final authorMatch = book.author.toLowerCase().contains(query);
         return titleMatch || authorMatch;
@@ -140,19 +138,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Apply genre filter
     if (_gSel != 'Genre') {
-      allBooks = allBooks
+      filteredBooks = filteredBooks
           .where((book) => book.genre.toLowerCase() == _gSel.toLowerCase())
           .toList();
     }
 
     // Apply location filter
     if (_lSel != 'Location') {
-      allBooks = allBooks
+      filteredBooks = filteredBooks
           .where((book) => book.location.toLowerCase() == _lSel.toLowerCase())
           .toList();
     }
 
-    return allBooks;
+    return filteredBooks;
   }
 
   void _onSearchChanged(String query) {

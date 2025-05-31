@@ -19,6 +19,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   bool _isLoading = false;
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  bool _isGoogleLoading = false;
 
   @override
   void dispose() {
@@ -122,6 +123,33 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       );
     } finally {
       setState(() => _isLoading = false);
+    }
+  }
+
+  void _signUpWithGoogle() async {
+    setState(() => _isGoogleLoading = true);
+
+    try {
+      final user = await AuthService().signInWithGoogle();
+      if (user != null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Successfully signed in with Google!')),
+          );
+          context.go('/home');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Google sign-in failed: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGoogleLoading = false);
+      }
     }
   }
 
@@ -354,7 +382,17 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                       ],
                     ),
                     child: ElevatedButton.icon(
-                      icon: Image.asset('assets/images/google.jpg', height: 24),
+                      icon: _isGoogleLoading
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color(0xFF562B56)),
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Image.asset('assets/images/google.jpg', height: 24),
                       label: const Text(
                         'Continue with Google',
                         style: TextStyle(
@@ -364,9 +402,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      onPressed: () {
-                        // TODO: Implement Google sign up
-                      },
+                      onPressed: _isGoogleLoading ? null : _signUpWithGoogle,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         shadowColor: Colors.transparent,

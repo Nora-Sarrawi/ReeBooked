@@ -13,6 +13,7 @@ class SwapRequest {
   final String status;
   final String borrowerId;
   final String ownerId;
+  final String? borrowerAvatarUrl; // Only need borrower's avatar
 
   SwapRequest({
     required this.id,
@@ -22,6 +23,7 @@ class SwapRequest {
     required this.status,
     required this.borrowerId,
     required this.ownerId,
+    this.borrowerAvatarUrl,
   });
 
   factory SwapRequest.fromFirestore(DocumentSnapshot doc) {
@@ -34,6 +36,7 @@ class SwapRequest {
       status: data['status'] ?? '',
       borrowerId: data['borrowerId'] ?? '',
       ownerId: data['ownerId'] ?? '',
+      borrowerAvatarUrl: data['borrowerAvatarUrl'],
     );
   }
 }
@@ -95,18 +98,48 @@ class RequestTab extends StatelessWidget {
 
   RequestTab({required this.type});
 
-  // تابع لجلب البيانات من Firestore حسب نوع التبويب
   Stream<List<SwapRequest>> getRequestStream(String userId) {
     final swaps = FirebaseFirestore.instance.collection('swaps');
+    final users = FirebaseFirestore.instance.collection('users');
+
+    Future<String> getUserAvatarUrl(String uid) async {
+      try {
+        final doc = await users.doc(uid).get();
+        if (doc.exists) {
+          final data = doc.data() as Map<String, dynamic>;
+          return data['avatarUrl'] ?? 'https://i.imgur.com/BoN9kdC.png';
+        }
+      } catch (e) {
+        print('Error fetching user avatar: $e');
+      }
+      return 'https://i.imgur.com/BoN9kdC.png';
+    }
 
     if (type == 'incoming') {
       return swaps
           .where('ownerId', isEqualTo: userId)
           .where('status', isEqualTo: 'pending')
           .snapshots()
-          .map((snapshot) => snapshot.docs
-              .map((doc) => SwapRequest.fromFirestore(doc))
-              .toList());
+          .asyncMap((snapshot) async {
+        final requests = <SwapRequest>[];
+        for (var doc in snapshot.docs) {
+          final data = doc.data();
+          final borrowerAvatarUrl =
+              await getUserAvatarUrl(data['borrowerId'] ?? '');
+
+          requests.add(SwapRequest(
+            id: doc.id,
+            name: data['name'] ?? '',
+            coverUrl: data['imagePath'] ?? '',
+            requestMessage: data['requestMessage'] ?? '',
+            status: data['status'] ?? '',
+            borrowerId: data['borrowerId'] ?? '',
+            ownerId: data['ownerId'] ?? '',
+            borrowerAvatarUrl: borrowerAvatarUrl,
+          ));
+        }
+        return requests;
+      });
     } else if (type == 'outgoing') {
       return swaps
           .where('borrowerId', isEqualTo: userId)
@@ -125,20 +158,35 @@ class RequestTab extends StatelessWidget {
           .where('status', whereIn: ['accepted', 'declined']).snapshots();
 
       return Rx.combineLatest2<QuerySnapshot<Map<String, dynamic>>,
-          QuerySnapshot<Map<String, dynamic>>, List<SwapRequest>>(
+          QuerySnapshot<Map<String, dynamic>>, Future<List<SwapRequest>>>(
         ownerStream,
         borrowerStream,
-        (ownerSnap, borrowerSnap) {
+        (ownerSnap, borrowerSnap) async {
           final combinedDocs = [...ownerSnap.docs, ...borrowerSnap.docs];
           final uniqueDocs = {
             for (var doc in combinedDocs) doc.id: doc,
           }.values.toList();
 
-          return uniqueDocs
-              .map((doc) => SwapRequest.fromFirestore(doc))
-              .toList();
+          final requests = <SwapRequest>[];
+          for (var doc in uniqueDocs) {
+            final data = doc.data();
+            final borrowerAvatarUrl =
+                await getUserAvatarUrl(data['borrowerId'] ?? '');
+
+            requests.add(SwapRequest(
+              id: doc.id,
+              name: data['name'] ?? '',
+              coverUrl: data['imagePath'] ?? '',
+              requestMessage: data['requestMessage'] ?? '',
+              status: data['status'] ?? '',
+              borrowerId: data['borrowerId'] ?? '',
+              ownerId: data['ownerId'] ?? '',
+              borrowerAvatarUrl: borrowerAvatarUrl,
+            ));
+          }
+          return requests;
         },
-      );
+      ).asyncMap((future) => future);
     }
   }
 
@@ -165,7 +213,7 @@ class RequestTab extends StatelessWidget {
           itemCount: requests.length,
           itemBuilder: (context, index) {
             final request = requests[index];
-            return SwapRequestWidget(request: request);
+            return SwapRequestWidget(request: request, type: type);
           },
         );
       },
@@ -184,8 +232,9 @@ extension CombineLatestExtension<T> on Stream<T> {
 // ===== GENERAL REQUEST WIDGET (Shared by all tabs) =====
 class SwapRequestWidget extends StatelessWidget {
   final SwapRequest request;
+  final String type;
 
-  SwapRequestWidget({required this.request});
+  SwapRequestWidget({required this.request, required this.type});
 
   @override
   Widget build(BuildContext context) {
@@ -208,10 +257,33 @@ class SwapRequestWidget extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundImage: AssetImage(request.coverUrl),
-              ),
+              if (type == 'outgoing')
+                // Show book cover for outgoing requests
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    image: DecorationImage(
+                      image: NetworkImage(
+                        request.coverUrl.isNotEmpty
+                            ? request.coverUrl
+                            : 'https://i.imgur.com/BoN9kdC.png',
+                      ),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                )
+              else
+                // Show borrower avatar for incoming and archived requests
+                CircleAvatar(
+                  radius: 24,
+                  backgroundImage: NetworkImage(
+                    (request.borrowerAvatarUrl?.isNotEmpty ?? false)
+                        ? request.borrowerAvatarUrl!
+                        : 'https://i.imgur.com/BoN9kdC.png',
+                  ),
+                ),
               SizedBox(width: 12),
               Expanded(
                 child: Column(
