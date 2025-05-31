@@ -17,7 +17,7 @@ class ProfileService {
         'email': user.email,
         'location': '',
         'bio': '',
-        'avatarUrl': '',
+        'avatarUrl': user.photoURL ?? 'https://i.imgur.com/BoN9kdC.png',
         'createdAt': FieldValue.serverTimestamp(),
       });
     }
@@ -38,4 +38,21 @@ class ProfileService {
   /// Patch update
   Future<void> update(String uid, Map<String, dynamic> data) =>
       _db.collection('users').doc(uid).update(data);
+
+  /// Get owner profile data
+  Future<Map<String, dynamic>?> getOwnerProfile(String ownerId) async {
+    try {
+      final doc = await _db.collection('users').doc(ownerId).get();
+      if (!doc.exists) return null;
+
+      final data = doc.data()!;
+      return {
+        'ownerName': data['displayName'] ?? 'Unknown',
+        'ownerAvatar': data['avatarUrl'],
+      };
+    } catch (e) {
+      print('Error fetching owner profile: $e');
+      return null;
+    }
+  }
 }

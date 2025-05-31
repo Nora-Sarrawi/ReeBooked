@@ -8,6 +8,7 @@ import 'package:dropdown_button2/dropdown_button2.dart';
 
 import '../../core/theme.dart'; // AppColors
 import '../../core/constants.dart'; // AppPadding
+import '../../services/profile_service.dart';
 import '../../utils/content_wrapper.dart'; // MaxWidthBox helper
 
 /* ──────────────────────────────────────────────────────────── */
@@ -101,6 +102,30 @@ class _HomeScreenState extends State<HomeScreen> {
         .collection('books')
         .where('ownerId', isNotEqualTo: uid)
         .get();
+
+    final books = await Future.wait(qs.docs.map((doc) async {
+      final data = doc.data();
+      final ownerId = data['ownerId'] as String?;
+      
+      if (ownerId == null) {
+        return Book.fromDoc(doc);
+      }
+
+      final ownerData = await ProfileService().getOwnerProfile(ownerId);
+      return Book(
+        id: doc.id,
+        coverPath: data['coverUrl'] ?? '',
+        title: data['title'] ?? 'Untitled',
+        author: data['author'] ?? 'Unknown',
+        ownerName: ownerData?['ownerName'] ?? 'Unknown',
+        ownerAvatar: ownerData?['ownerAvatar'],
+        location: data['location'] ?? '',
+        genre: data['genre'] ?? '',
+        status: _statusFromString(data['status'] ?? 'available'),
+      );
+    }));
+
+    return books;
     List<Book> allBooks = qs.docs.map(Book.fromDoc).toList();
 
     // Apply search filter
