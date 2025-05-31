@@ -2,44 +2,60 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwnerOrBorrower(swapData) {
+      return isSignedIn() && (
+        request.auth.uid == swapData.ownerId || 
+        request.auth.uid == swapData.borrowerId
+      );
+    }
 
-
-    //  Allow each user to manage only their own profile document
+    //  Allow each user to manage only their own profile document and subcollections
     match /users/{userId} {
-      allow read, update, delete: if request.auth.uid == userId;
-      allow create:               if request.auth.uid != null;
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == userId;
+
+      match /{subcollection}/{docId} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
+      }
     }
 
     match /books/{bookId} {
-      allow read: if true;  // Anyone can read books
-      allow create: if request.auth != null;  // Logged in users can create books
-      allow update, delete: if request.auth != null && 
-        request.auth.uid == resource.data.ownerId;  // Only book owners can update/delete
-    }
-
-    match /{document=**} {
-      allow read, write: if false;
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && request.auth.uid == request.resource.data.ownerId;
     }
 
     /* ───── swaps collection ───── */
     match /swaps/{swapId} {
-      allow read:   if isParty();
+      allow read:   if isSignedIn() && isOwnerOrBorrower(resource.data);
       allow create: if request.auth.uid == request.resource.data.borrowerId;
-      allow update: if isParty() &&
+      allow update: if isSignedIn() &&
                     request.resource.data.status in ['accepted', 'declined'];
-
-      function isParty() {
-        return request.auth != null &&
-               (request.auth.uid == resource.data.ownerId ||
-                request.auth.uid == resource.data.borrowerId);
-      }
 
       /* per-swap notes sub-collection */
       match /notes/{noteId} {
-        allow read, create: if isParty();
+        allow read: if isSignedIn() && isOwnerOrBorrower(get(/databases/$(database)/documents/swaps/$(swapId)).data);
+        allow create: if isSignedIn() && isOwnerOrBorrower(get(/databases/$(database)/documents/swaps/$(swapId)).data);
+      }
+
+      /* per-swap notifications sub-collection */
+      match /notifications/{notificationId} {
+        allow read: if isSignedIn() && isOwnerOrBorrower(get(/databases/$(database)/documents/swaps/$(swapId)).data);
+        allow create: if isSignedIn() && (
+          request.auth.uid == request.resource.data.senderId || 
+          request.auth.uid == request.resource.data.recipientId
+        );
+        allow update: if isSignedIn() && request.auth.uid == resource.data.recipientId && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
       }
     }
 
-    /* add your /books rules or other collections here */
+    /* catch-all rule - must be last */
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }

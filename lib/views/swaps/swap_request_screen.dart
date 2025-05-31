@@ -7,8 +7,8 @@ import 'package:rxdart/rxdart.dart';
 // ===== MODEL =====
 class SwapRequest {
   final String id;
-  final String name;           // اسم الكتاب (Owner Book Title)
-  final String coverUrl;      // مسار الصورة (Asset أو URL حسب التطبيق)
+  final String name; // اسم الكتاب (Owner Book Title)
+  final String coverUrl; // مسار الصورة (Asset أو URL حسب التطبيق)
   final String requestMessage;
   final String status;
   final String borrowerId;
@@ -104,41 +104,43 @@ class RequestTab extends StatelessWidget {
           .where('ownerId', isEqualTo: userId)
           .where('status', isEqualTo: 'pending')
           .snapshots()
-          .map((snapshot) =>
-          snapshot.docs.map((doc) => SwapRequest.fromFirestore(doc)).toList());
+          .map((snapshot) => snapshot.docs
+              .map((doc) => SwapRequest.fromFirestore(doc))
+              .toList());
     } else if (type == 'outgoing') {
       return swaps
           .where('borrowerId', isEqualTo: userId)
           .where('status', isEqualTo: 'pending')
           .snapshots()
-          .map((snapshot) =>
-          snapshot.docs.map((doc) => SwapRequest.fromFirestore(doc)).toList());
+          .map((snapshot) => snapshot.docs
+              .map((doc) => SwapRequest.fromFirestore(doc))
+              .toList());
     } else {
       final ownerStream = swaps
           .where('ownerId', isEqualTo: userId)
-          .where('status', whereIn: ['accepted', 'declined'])
-          .snapshots();
+          .where('status', whereIn: ['accepted', 'declined']).snapshots();
 
       final borrowerStream = swaps
           .where('borrowerId', isEqualTo: userId)
-          .where('status', whereIn: ['accepted', 'declined'])
-          .snapshots();
+          .where('status', whereIn: ['accepted', 'declined']).snapshots();
 
-      return Rx.combineLatest2<QuerySnapshot<Map<String, dynamic>>, QuerySnapshot<Map<String, dynamic>>, List<SwapRequest>>(
+      return Rx.combineLatest2<QuerySnapshot<Map<String, dynamic>>,
+          QuerySnapshot<Map<String, dynamic>>, List<SwapRequest>>(
         ownerStream,
         borrowerStream,
-            (ownerSnap, borrowerSnap) {
+        (ownerSnap, borrowerSnap) {
           final combinedDocs = [...ownerSnap.docs, ...borrowerSnap.docs];
           final uniqueDocs = {
             for (var doc in combinedDocs) doc.id: doc,
           }.values.toList();
 
-          return uniqueDocs.map((doc) => SwapRequest.fromFirestore(doc)).toList();
+          return uniqueDocs
+              .map((doc) => SwapRequest.fromFirestore(doc))
+              .toList();
         },
       );
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -171,13 +173,11 @@ class RequestTab extends StatelessWidget {
   }
 }
 
-
-
 extension CombineLatestExtension<T> on Stream<T> {
   Stream<R> combineLatest<S, R>(
-      Stream<S> other,
-      R Function(T, S) combiner,
-      ) =>
+    Stream<S> other,
+    R Function(T, S) combiner,
+  ) =>
       Rx.combineLatest2(this, other, combiner);
 }
 
@@ -193,19 +193,18 @@ class SwapRequestWidget extends StatelessWidget {
       children: [
         InkWell(
           onTap: () {
-            context.goNamed(
-              'requestDetails',
-              extra: {
-                'swapId': request.id,
-                'ownerId': request.ownerId,
-                'borrowerId': request.borrowerId,
-                //'ownerBookId': "mmm",
-                //'borrowerBookId': "aaa",
-              },
-            );
+            print('SwapRequestScreen: InkWell onTap triggered');
+            print('SwapRequestScreen: Attempting navigation to requestDetails');
+            print('SwapRequestScreen: Request ID: ${request.id}');
+            print('SwapRequestScreen: Owner ID: ${request.ownerId}');
+            print('SwapRequestScreen: Borrower ID: ${request.borrowerId}');
+
+            context.push('/requests/${request.id}/details', extra: {
+              'ownerId': request.ownerId,
+              'borrowerId': request.borrowerId,
+              'fromRoute': 'requests',
+            });
           },
-
-
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
