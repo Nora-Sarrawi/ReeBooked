@@ -23,6 +23,7 @@ class BookDetailsScreen extends StatelessWidget {
           }
 
           final data = snapshot.data!.data() as Map<String, dynamic>;
+          print('Book Data: $data');
 
           final title = data['title'] ?? '';
           final author = data['author'] ?? '';
@@ -162,6 +163,7 @@ class BookDetailsScreen extends StatelessWidget {
                           'location': data['location'] ?? '',
                           'genre': data['genre'] ?? '',
                           'status': status,
+                          'ownerId': data['ownerId'] ?? '',
                         });
                       },
                       child: const Text(

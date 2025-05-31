@@ -70,10 +70,30 @@ final GoRouter router = GoRouter(
     ),
 
     // Any other full‐screen static pages come outside the shell:
-
     GoRoute(path: '/start', builder: (_, __) => const StartScreen()),
     GoRoute(path: '/settings', builder: (_, __) => SettingsPage()),
     GoRoute(path: '/add-book', builder: (_, __) => AddBookScreen()),
+
+    // Request Details route outside shell
+    GoRoute(
+      path: '/requests/:swapId/details',
+      builder: (context, state) {
+        print('Router: Building RequestDetailsScreen');
+        print('Router: Params: ${state.pathParameters}');
+        print('Router: Extra: ${state.extra}');
+
+        final swapId = state.pathParameters['swapId']!;
+        final extra = state.extra as Map<String, dynamic>?;
+
+        return RequestDetailsScreen(
+          swapId: swapId,
+          ownerId: extra?['ownerId'] ?? '',
+          borrowerId: extra?['borrowerId'] ?? '',
+          fromRoute: extra?['fromRoute'] ?? 'notifications',
+        );
+      },
+    ),
+
     GoRoute(
       path: '/confirm',
       builder: (context, state) => ConfirmSwapPage(
@@ -89,18 +109,6 @@ final GoRouter router = GoRouter(
       builder: (context, state) {
         final bookId = state.pathParameters['bookId']!;
         return BookDetailsScreen(bookId: bookId);
-      },
-    ),
-    GoRoute(
-      name: 'requestDetails',
-      path: '/request-details',
-      builder: (context, state) {
-        final data = state.extra as Map<String, dynamic>;
-        return RequestDetailsScreen(
-          swapId: data['swapId'],
-          ownerId: data['ownerId'],
-          borrowerId: data['borrowerId'],
-        );
       },
     ),
 
