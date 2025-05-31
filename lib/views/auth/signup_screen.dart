@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/gestures.dart';
 import '/services/auth_service.dart';
 
 class CreateAccountScreen extends StatefulWidget {
@@ -15,6 +16,74 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _termsAgreed = false;
+  bool _isLoading = false;
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  InputDecoration _getInputDecoration(String hint, IconData icon,
+      {bool isPassword = false, bool isConfirmPassword = false}) {
+    return InputDecoration(
+      hintText: hint,
+      prefixIcon: Icon(icon, color: const Color(0xFF562B56)),
+      suffixIcon: isPassword || isConfirmPassword
+          ? IconButton(
+              icon: Icon(
+                (isPassword ? _isPasswordVisible : _isConfirmPasswordVisible)
+                    ? Icons.visibility_off
+                    : Icons.visibility,
+                color: const Color(0xFF562B56),
+              ),
+              onPressed: () {
+                setState(() {
+                  if (isPassword) {
+                    _isPasswordVisible = !_isPasswordVisible;
+                  } else {
+                    _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                  }
+                });
+              },
+            )
+          : null,
+      hintStyle: const TextStyle(
+        color: Color(0xFF562B56),
+        fontSize: 14,
+        fontFamily: 'Poppins',
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(25),
+        borderSide: const BorderSide(
+          color: Color(0xFF562B56),
+          width: 2,
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(25),
+        borderSide: const BorderSide(
+          color: Color(0xFF562B56),
+          width: 2,
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(25),
+        borderSide: const BorderSide(
+          color: Color(0xFFC76767),
+          width: 2,
+        ),
+      ),
+      filled: true,
+      fillColor: Colors.transparent,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    );
+  }
 
   void _signUp() async {
     if (_passwordController.text != _confirmPasswordController.text) {
@@ -36,6 +105,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       return;
     }
 
+    setState(() => _isLoading = true);
+
     try {
       await AuthService().signUpWithEmail(
         _emailController.text.trim(),
@@ -44,262 +115,307 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Account created! Please sign in.")),
       );
-      Navigator.pop(context); // Go back to login screen
+      Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Sign up failed: ${e.toString()}")),
       );
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          color: const Color(0xFF562B56),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
       backgroundColor: const Color(0xFFF2E9DC),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 25.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            const SizedBox(height: 20.0),
-            const Text(
-              'Create your account',
-              style: TextStyle(
-                color: Color(0xFF562B56),
-                fontSize: 26.72,
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w600,
-                height: 1.3,
-                letterSpacing: 0.53,
-              ),
-            ),
-            const SizedBox(height: 25.0),
-            _buildLabel("Name"),
-            _buildTextField(_nameController, "ex: jon smith"),
-            const SizedBox(height: 20.0),
-            _buildLabel("Email"),
-            _buildTextField(_emailController, "ex: jon.smith@email.com"),
-            const SizedBox(height: 20.0),
-            _buildLabel("Password"),
-            _buildTextField(_passwordController, "*********", obscure: true),
-            const SizedBox(height: 20.0),
-            _buildLabel("Confirm password"),
-            _buildTextField(_confirmPasswordController, "*********",
-                obscure: true),
-            const SizedBox(height: 5.0),
-            Row(
-              children: <Widget>[
-                Checkbox(
-                  value: _termsAgreed,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      _termsAgreed = value!;
-                    });
-                  },
-                  activeColor: const Color(0xFF562B56),
-                ),
-                Expanded(
-                  child: Text.rich(
-                    TextSpan(
-                      children: [
-                        const TextSpan(
-                          text: 'I understood the ',
-                          style: TextStyle(
-                            color: Color(0xFF562B56),
-                            fontSize: 12,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w400,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFF2E9DC), Color(0xFFE6D5C7)],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const SizedBox(height: 20),
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    color: const Color(0xFF562B56),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(height: 20),
+                  // Logo and App Name
+                  Center(
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        border: Border.all(
+                          color: const Color(0xFF562B56),
+                          width: 3,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF562B56).withOpacity(0.2),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: const CircleAvatar(
+                        backgroundColor: Colors.transparent,
+                        backgroundImage:
+                            AssetImage('assets/images/applogo.png'),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Create Account Header
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF562B56).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: const Text(
+                        'Create your account',
+                        style: TextStyle(
+                          color: Color(0xFF562B56),
+                          fontSize: 24,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  TextField(
+                    controller: _nameController,
+                    decoration: _getInputDecoration('Full Name', Icons.person),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _emailController,
+                    decoration: _getInputDecoration('Email', Icons.email),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: !_isPasswordVisible,
+                    decoration: _getInputDecoration('Password', Icons.lock,
+                        isPassword: true),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _confirmPasswordController,
+                    obscureText: !_isConfirmPasswordVisible,
+                    decoration: _getInputDecoration(
+                        'Confirm Password', Icons.lock,
+                        isConfirmPassword: true),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: <Widget>[
+                      Checkbox(
+                        value: _termsAgreed,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            _termsAgreed = value!;
+                          });
+                        },
+                        activeColor: const Color(0xFF562B56),
+                      ),
+                      Expanded(
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              const TextSpan(
+                                text: 'I agree to the ',
+                                style: TextStyle(
+                                  color: Color(0xFF562B56),
+                                  fontSize: 14,
+                                  fontFamily: 'Poppins',
+                                ),
+                              ),
+                              TextSpan(
+                                text: 'Terms & Conditions',
+                                style: TextStyle(
+                                  color: const Color(0xFFC76767),
+                                  fontSize: 14,
+                                  fontFamily: 'Poppins',
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        TextSpan(
-                          text: 'terms & policy',
-                          style: const TextStyle(
-                            color: Color(0xFFCDA2F2),
-                            fontSize: 12,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        const TextSpan(
-                          text: '.',
-                          style: TextStyle(
-                            color: Color(0xFF562B56),
-                            fontSize: 12,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.w400,
-                          ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  // Sign Up Button
+                  Container(
+                    width: double.infinity,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(25),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFC76767), Color(0xFF562B56)],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFC76767).withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 5.0),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _termsAgreed ? _signUp : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFC76767),
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25.0),
-                  ),
-                ),
-                child: const Text(
-                  'SIGN UP',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Color(0xFFF2E9DC),
-                    fontSize: 15,
-                    fontFamily: 'Poppins',
-                    fontWeight: FontWeight.w600,
-                    height: 1.7,
-                    letterSpacing: 0.30,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 10.0),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Expanded(
-                    child: Divider(color: Color(0xFF888888), thickness: 0.8)),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10.0),
-                  child: Text(
-                    'or sign up with',
-                    style: TextStyle(
-                      color: Color(0xFF562B56),
-                      fontSize: 16,
-                      fontFamily: 'Poppins',
-                      fontWeight: FontWeight.w400,
+                    child: ElevatedButton(
+                      onPressed: _termsAgreed && !_isLoading ? _signUp : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              'Create Account',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                     ),
                   ),
-                ),
-                Expanded(
-                    child: Divider(color: Color(0xFF888888), thickness: 0.8)),
-              ],
-            ),
-            const SizedBox(height: 10.0),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Handle Google sign up
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25.0),
-                    side:
-                        const BorderSide(color: Color(0xFF888888), width: 0.5),
+                  const SizedBox(height: 24),
+                  // Or divider
+                  const Row(
+                    children: [
+                      Expanded(
+                          child: Divider(
+                              color: Color(0xFF562B56), thickness: 0.5)),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'Or sign up with',
+                          style: TextStyle(
+                            color: Color(0xFF562B56),
+                            fontSize: 14,
+                            fontFamily: 'Poppins',
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                          child: Divider(
+                              color: Color(0xFF562B56), thickness: 0.5)),
+                    ],
                   ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Image.asset('assets/images/google.jpg', height: 24.0),
-                    const SizedBox(width: 10.0),
-                    const Text(
-                      'Sign up with Google',
-                      style: TextStyle(
-                        color: Color(0xFF562B56),
-                        fontSize: 15,
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.w500,
-                        height: 1.7,
-                        letterSpacing: 0.30,
+                  const SizedBox(height: 24),
+                  // Google Sign Up Button
+                  Container(
+                    width: double.infinity,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(25),
+                      color: Colors.white,
+                      border: Border.all(
+                          color: const Color(0xFF562B56).withOpacity(0.3)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton.icon(
+                      icon: Image.asset('assets/images/google.jpg', height: 24),
+                      label: const Text(
+                        'Continue with Google',
+                        style: TextStyle(
+                          color: Color(0xFF562B56),
+                          fontSize: 16,
+                          fontFamily: 'Poppins',
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      onPressed: () {
+                        // TODO: Implement Google sign up
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 30.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                const Text(
-                  'Already have an account? ',
-                  style: TextStyle(
-                    color: Color(0xFF888888),
-                    fontSize: 16,
-                    fontFamily: 'Poppins',
                   ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    context.go('/login');
-                  },
-                  child: const Text(
-                    'Sign in',
-                    style: TextStyle(
-                      color: Color(0xFF562B56),
-                      fontSize: 16,
-                      fontFamily: 'Poppins',
+                  const SizedBox(height: 24),
+                  // Already have account
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'Already have an account? ',
+                              style: TextStyle(
+                                color: const Color(0xFF562B56).withOpacity(0.7),
+                                fontSize: 15,
+                                fontFamily: 'Poppins',
+                              ),
+                            ),
+                            TextSpan(
+                              text: 'Sign in',
+                              style: const TextStyle(
+                                color: Color(0xFF562B56),
+                                fontSize: 15,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w700,
+                                decoration: TextDecoration.underline,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () => context.go('/login'),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
-            const SizedBox(height: 40.0),
-          ],
+          ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-        color: Color(0xFF562B56),
-        fontSize: 16,
-        fontFamily: 'Poppins',
-        fontWeight: FontWeight.w400,
-        height: 1.95,
-        letterSpacing: 0.32,
-      ),
-    );
-  }
-
-  Widget _buildTextField(TextEditingController controller, String hint,
-      {bool obscure = false}) {
-    return TextField(
-      controller: controller,
-      obscureText: obscure,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(
-          color: Color(0xFF888888),
-          fontSize: 15,
-          fontFamily: 'Poppins',
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(25.0),
-          borderSide: const BorderSide(color: Color(0xFF562B56), width: 2.0),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(25.0),
-          borderSide: const BorderSide(color: Color(0xFF562B56), width: 2.0),
-        ),
-        filled: true,
-        fillColor: const Color(0xFFF2E9DC),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
       ),
     );
   }

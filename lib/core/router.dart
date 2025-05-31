@@ -25,7 +25,7 @@ final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
 final GoRouter router = GoRouter(
   navigatorKey: _rootNavigatorKey,
-  initialLocation: '/Login',
+  initialLocation: '/start',
   routes: [
     // This ShellRoute wraps all five "tab" routes in your bottom bar
     ShellRoute(

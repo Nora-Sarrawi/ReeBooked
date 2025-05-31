@@ -652,10 +652,9 @@ class _BookCard extends StatelessWidget {
                         radius: 15,
                         backgroundImage: ownerAvatar == null
                             ? const AssetImage('assets/images/book1.jpg')
-                                as ImageProvider
                             : (ownerAvatar!.startsWith('http')
-                                ? NetworkImage(ownerAvatar!)
-                                : AssetImage(ownerAvatar!)),
+                                ? NetworkImage(ownerAvatar!) as ImageProvider
+                                : AssetImage(ownerAvatar!) as ImageProvider),
                       ),
                       const SizedBox(width: 6),
                       Expanded(
