@@ -17,7 +17,7 @@ class ProfileService {
         'email': user.email,
         'location': '',
         'bio': '',
-        'avatarUrl': '',
+        'avatarUrl': user.photoURL ?? 'https://i.imgur.com/BoN9kdC.png',
         'createdAt': FieldValue.serverTimestamp(),
       });
     }
@@ -44,7 +44,7 @@ class ProfileService {
     try {
       final doc = await _db.collection('users').doc(ownerId).get();
       if (!doc.exists) return null;
-      
+
       final data = doc.data()!;
       return {
         'ownerName': data['displayName'] ?? 'Unknown',

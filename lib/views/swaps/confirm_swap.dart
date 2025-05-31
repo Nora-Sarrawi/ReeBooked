@@ -43,14 +43,18 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
   late final String targetBookTitle;
   late final String targetBookCover;
   late final String targetBookId;
+  late final String targetOwnerId;
 
   @override
   void initState() {
     super.initState();
+    print('Book Details received: ${widget.bookDetails}');
     targetBookTitle = widget.bookDetails?['bookTitle'] ?? 'Select a Book';
     targetBookCover = widget.bookDetails?['bookCover'] ??
         'assets/images/book_placeholder.jpg';
     targetBookId = widget.bookDetails?['bookId'] ?? '';
+    targetOwnerId = widget.bookDetails?['ownerId'] ?? '';
+    print('Target Owner ID: $targetOwnerId');
     _fetchUserBooks();
   }
 
@@ -76,6 +80,50 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
+    print('DEBUG - Current user info:');
+    print('User ID: ${user.uid}');
+    print('Display Name: ${user.displayName}');
+    print('Photo URL: ${user.photoURL}');
+    print('Target Owner ID: $targetOwnerId');
+
+    if (targetOwnerId.isEmpty) {
+      print('Error: Owner ID is empty!');
+      return;
+    }
+
+    // Check if the current user is the owner
+    final isOwner = user.uid == targetOwnerId;
+    String recipientId;
+    if (isOwner) {
+      recipientId = widget.bookDetails?['borrowerId'] ?? '';
+    } else {
+      recipientId = targetOwnerId;
+    }
+
+    String notificationText;
+    String status;
+
+    if (isOwner) {
+      if (selectedBook!.title == 'Accept') {
+        notificationText = "Your swap request has been accepted";
+        status = 'accepted';
+      } else {
+        notificationText = "Your swap request has been declined";
+        status = 'declined';
+      }
+    } else {
+      notificationText =
+          "I'd like to swap my '${selectedBook!.title}' for your '$targetBookTitle'";
+      status = 'pending';
+    }
+
+    String borrowerId;
+    if (isOwner) {
+      borrowerId = widget.bookDetails?['borrowerId'] ?? '';
+    } else {
+      borrowerId = user.uid;
+    }
+
     final swapData = {
       'name': targetBookTitle,
       'imagePath': targetBookCover,
@@ -85,12 +133,47 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
       'borrowerId': user.uid,
       'borrowerBookId': selectedBook!.id,
       'ownerBookId': targetBookId,
-      'ownerId':
-          'TARGET_USER_ID', // This should be set to the actual owner's ID
+      'ownerId': targetOwnerId,
       'timestamp': FieldValue.serverTimestamp(),
     };
 
-    await FirebaseFirestore.instance.collection('swaps').add(swapData);
+    print('DEBUG - Swap Data to be created:');
+    print(swapData);
+
+    try {
+      DocumentReference swapDoc;
+      if (isOwner) {
+        // Update existing swap
+        swapDoc = FirebaseFirestore.instance
+            .collection('swaps')
+            .doc(widget.bookDetails?['swapId']);
+        await swapDoc.update({
+          'status': status,
+          'requestMessage': notificationText,
+        });
+        print('DEBUG - Swap updated with ID: ${swapDoc.id}');
+      } else {
+        // Create new swap request
+        swapDoc =
+            await FirebaseFirestore.instance.collection('swaps').add(swapData);
+        print('DEBUG - New swap created with ID: ${swapDoc.id}');
+      }
+
+      // Create notification for the recipient
+      print('DEBUG - Creating notification with:');
+      print('Swap ID: ${swapDoc.id}');
+      print('Sender ID: ${user.uid}');
+      print('Sender Name: ${user.displayName ?? 'Unknown User'}');
+      print('Sender Avatar: ${user.photoURL ?? ''}');
+      print('Recipient ID: $recipientId');
+      print('Text: $notificationText');
+
+      // Notification creation code removed as per the instructions
+    } catch (e) {
+      print('DEBUG - Error details:');
+      print(e);
+      return;
+    }
   }
 
   void showSuccessDialog(BuildContext context) {
