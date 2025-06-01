@@ -233,16 +233,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       )
                   : (data['avatarUrl'] != null &&
                           data['avatarUrl'].toString().isNotEmpty)
-                      ? Image.network(data['avatarUrl'], fit: BoxFit.cover)
-                      : Container(
-                          color: Colors.grey[200], // light background
-                          child: Center(
-                            child: Icon(
-                              Icons.person_outline,
-                              size: 48,
-                              color: Colors.grey[500],
-                            ),
-                          ),
+                      ? Image.network(
+                          data['avatarUrl'],
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Image.network(
+                              'https://i.pinimg.com/736x/3c/ae/07/3cae079ca0b9e55ec6bfc1b358c9b1e2.jpg',
+                              fit: BoxFit.cover,
+                            );
+                          },
+                        )
+                      : Image.network(
+                          'https://i.pinimg.com/736x/3c/ae/07/3cae079ca0b9e55ec6bfc1b358c9b1e2.jpg',
+                          fit: BoxFit.cover,
                         ),
             ),
           ),
