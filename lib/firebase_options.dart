@@ -30,9 +30,12 @@ class DefaultFirebaseOptions {
           'you can reconfigure this by running the FlutterFire CLI again.',
         );
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
+        return FirebaseOptions(
+          apiKey: 'AIzaSyBc8Uvfxld284RO3J82q4cN19_j3-9bfZs',
+          appId: '1:22303843381:android:aced234bb1e7bcc1f23d7c',
+          messagingSenderId: '22303843381',
+          projectId: 'rebooked-8fe1e',
+          storageBucket: 'rebooked-8fe1e.firebasestorage.app',
         );
       case TargetPlatform.linux:
         throw UnsupportedError(
@@ -71,5 +74,4 @@ class DefaultFirebaseOptions {
     authDomain: 'rebooked-8fe1e.firebaseapp.com',
     storageBucket: 'rebooked-8fe1e.firebasestorage.app',
   );
-
 }

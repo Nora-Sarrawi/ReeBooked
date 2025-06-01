@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rebooked_app/core/theme.dart';
 import 'package:rebooked_app/core/router.dart';
+import 'package:rebooked_app/widgets/connection_monitor.dart';
 
 class ReBooked extends StatelessWidget {
   const ReBooked({super.key});
@@ -12,6 +13,11 @@ class ReBooked extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
       routerConfig: router,
+      builder: (context, child) {
+        return ConnectionMonitor(
+          child: child ?? const SizedBox(),
+        );
+      },
     );
   }
 }
