@@ -377,7 +377,8 @@ class _RequestDetailsScreenState extends State<RequestDetailsScreen> {
           backgroundImage: (userData?['avatarUrl'] != null &&
                   userData!['avatarUrl'].toString().isNotEmpty)
               ? NetworkImage(userData['avatarUrl'])
-              : const NetworkImage('https://i.imgur.com/BoN9kdC.png'),
+              : const NetworkImage(
+                  'https://i.pinimg.com/736x/3c/ae/07/3cae079ca0b9e55ec6bfc1b358c9b1e2.jpg'),
           radius: 30,
         ),
         const SizedBox(height: 8),
