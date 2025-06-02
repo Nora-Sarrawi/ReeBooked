@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:rebooked_app/core/page_transitions.dart';
 
 import 'package:rebooked_app/providers/swap_provider.dart';
 import 'package:rebooked_app/views/auth/login_screen.dart';
-import 'package:rebooked_app/views/auth/reset_password/password_screen1.dart';
 import 'package:rebooked_app/views/auth/reset_password/password_screen1.dart';
 import 'package:rebooked_app/views/auth/signup_screen.dart';
 
@@ -26,6 +26,8 @@ final _shellNavigatorKey = GlobalKey<NavigatorState>();
 final GoRouter router = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/start',
+  debugLogDiagnostics: false, // Disable debug logging in production
+  routerNeglect: true, // Enable route optimization
   routes: [
     // This ShellRoute wraps all five "tab" routes in your bottom bar
     ShellRoute(
@@ -37,32 +39,45 @@ final GoRouter router = GoRouter(
       routes: [
         GoRoute(
           path: '/home',
-          pageBuilder: (context, state) =>
-              NoTransitionPage(child: const HomeScreen()),
+          pageBuilder: (context, state) => AppPageTransition(
+            key: state.pageKey,
+            child: const HomeScreen(),
+          ),
         ),
         GoRoute(
           path: '/requests',
-          pageBuilder: (context, state) =>
-              NoTransitionPage(child: SwapRequestsScreen()),
+          pageBuilder: (context, state) => AppPageTransition(
+            key: state.pageKey,
+            child: SwapRequestsScreen(),
+          ),
         ),
         GoRoute(
           path: '/my-books',
-          pageBuilder: (context, state) =>
-              NoTransitionPage(child: const MyBooksScreen()),
+          pageBuilder: (context, state) => AppPageTransition(
+            key: state.pageKey,
+            child: const MyBooksScreen(),
+          ),
         ),
         GoRoute(
           path: '/notifications',
-          pageBuilder: (context, state) =>
-              NoTransitionPage(child: const NotificationsScreen()),
+          pageBuilder: (context, state) => AppPageTransition(
+            key: state.pageKey,
+            child: const NotificationsScreen(),
+          ),
         ),
         GoRoute(
           path: '/profile',
-          pageBuilder: (context, state) =>
-              NoTransitionPage(child: ProfileScreen()),
+          pageBuilder: (context, state) => AppPageTransition(
+            key: state.pageKey,
+            child: ProfileScreen(),
+          ),
           routes: [
             GoRoute(
               path: 'settings',
-              builder: (context, state) => SettingsPage(),
+              pageBuilder: (context, state) => AppPageTransition(
+                key: state.pageKey,
+                child: SettingsPage(),
+              ),
             ),
           ],
         ),
@@ -70,64 +85,107 @@ final GoRouter router = GoRouter(
     ),
 
     // Any other full‐screen static pages come outside the shell:
-    GoRoute(path: '/start', builder: (_, __) => const StartScreen()),
-    GoRoute(path: '/settings', builder: (_, __) => SettingsPage()),
-    GoRoute(path: '/add-book', builder: (_, __) => AddBookScreen()),
+    GoRoute(
+      path: '/start',
+      pageBuilder: (context, state) => AppPageTransition(
+        key: state.pageKey,
+        child: const StartScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/settings',
+      pageBuilder: (context, state) => AppPageTransition(
+        key: state.pageKey,
+        child: SettingsPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/add-book',
+      pageBuilder: (context, state) => AppPageTransition(
+        key: state.pageKey,
+        child: AddBookScreen(),
+      ),
+    ),
 
     // Request Details route outside shell
     GoRoute(
       path: '/requests/:swapId/details',
-      builder: (context, state) {
-        print('Router: Building RequestDetailsScreen');
-        print('Router: Params: ${state.pathParameters}');
-        print('Router: Extra: ${state.extra}');
-
+      pageBuilder: (context, state) {
         final swapId = state.pathParameters['swapId']!;
         final extra = state.extra as Map<String, dynamic>?;
 
-        return RequestDetailsScreen(
-          swapId: swapId,
-          ownerId: extra?['ownerId'] ?? '',
-          borrowerId: extra?['borrowerId'] ?? '',
-          fromRoute: extra?['fromRoute'] ?? 'notifications',
+        return AppPageTransition(
+          key: state.pageKey,
+          child: RequestDetailsScreen(
+            swapId: swapId,
+            ownerId: extra?['ownerId'] ?? '',
+            borrowerId: extra?['borrowerId'] ?? '',
+            fromRoute: extra?['fromRoute'] ?? 'notifications',
+          ),
         );
       },
     ),
 
     GoRoute(
       path: '/confirm',
-      builder: (context, state) => ConfirmSwapPage(
-        bookDetails: state.extra is Map<String, dynamic>
-            ? state.extra as Map<String, dynamic>
-            : null,
+      pageBuilder: (context, state) => AppPageTransition(
+        key: state.pageKey,
+        child: ConfirmSwapPage(
+          bookDetails: state.extra is Map<String, dynamic>
+              ? state.extra as Map<String, dynamic>
+              : null,
+        ),
       ),
     ),
 
     GoRoute(
       path: '/book/:bookId',
       name: 'bookDetails',
-      builder: (context, state) {
-        final bookId = state.pathParameters['bookId']!;
-        return BookDetailsScreen(bookId: bookId);
-      },
+      pageBuilder: (context, state) => AppPageTransition(
+        key: state.pageKey,
+        child: BookDetailsScreen(bookId: state.pathParameters['bookId']!),
+      ),
     ),
 
     GoRoute(
-        path: '/forgot-password', builder: (_, __) => ResetPasswordScreen1()),
-    GoRoute(path: '/Login', builder: (_, __) => LoginPage()),
-    GoRoute(path: '/Signup', builder: (_, __) => CreateAccountScreen()),
-    GoRoute(path: '/swap-request', builder: (_, __) => SwapRequestsScreen()),
+      path: '/forgot-password',
+      pageBuilder: (context, state) => AppPageTransition(
+        key: state.pageKey,
+        child: ResetPasswordScreen1(),
+      ),
+    ),
+    GoRoute(
+      path: '/Login',
+      pageBuilder: (context, state) => AppPageTransition(
+        key: state.pageKey,
+        child: LoginPage(),
+      ),
+    ),
+    GoRoute(
+      path: '/Signup',
+      pageBuilder: (context, state) => AppPageTransition(
+        key: state.pageKey,
+        child: CreateAccountScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/swap-request',
+      pageBuilder: (context, state) => AppPageTransition(
+        key: state.pageKey,
+        child: SwapRequestsScreen(),
+      ),
+    ),
     GoRoute(
       name: 'swapDetailsById',
       path: '/swapDetails/:swapId',
-      builder: (context, state) {
-        final swapId = state.pathParameters['swapId']!;
-        return RequestDetailsScreen(
-          swapId: swapId,
+      pageBuilder: (context, state) => AppPageTransition(
+        key: state.pageKey,
+        child: RequestDetailsScreen(
+          swapId: state.pathParameters['swapId']!,
           ownerId: '', // fetched inside the screen
           borrowerId: '', // fetched inside the screen
-        );
-      },
+        ),
+      ),
     ),
   ],
 );
