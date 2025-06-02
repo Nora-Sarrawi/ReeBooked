@@ -32,35 +32,43 @@ class _AddBookScreenState extends State<AddBookScreen> {
   String? _selectedGenre;
 
   final List<String> _locations = [
-    'Jerusalem', 'Ramallah', 'Nablus', 'Bethlehem', 'Hebron', 'Jenin'
+    'Jerusalem',
+    'Ramallah',
+    'Nablus',
+    'Bethlehem',
+    'Hebron',
+    'Jenin'
   ];
 
   final List<String> _genres = [
-    'Storytelling', 'Truth', 'Imagination', 'Wisdom', 'Growth'
+    'Storytelling',
+    'Truth',
+    'Imagination',
+    'Wisdom',
+    'Growth'
   ];
 
-Future<void> _pickImage() async {
-  final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-  if (pickedFile != null) {
-    final file = File(pickedFile.path);
-    final extension = pickedFile.name.split('.').last.toLowerCase();
-    final allowedExtensions = ['jpg', 'jpeg', 'png'];
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final file = File(pickedFile.path);
+      final extension = pickedFile.name.split('.').last.toLowerCase();
+      final allowedExtensions = ['jpg', 'jpeg', 'png'];
 
-    if (!allowedExtensions.contains(extension)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Only JPG, JPEG, or PNG files are allowed.'),
-        ),
-      );
-      return;
+      if (!allowedExtensions.contains(extension)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Only JPG, JPEG, or PNG files are allowed.'),
+          ),
+        );
+        return;
+      }
+
+      setState(() {
+        _pickedImageFile = file;
+      });
     }
-
-    setState(() {
-      _pickedImageFile = file;
-    });
   }
-}
-
 
   Future<void> _saveBook() async {
     if (!_formKey.currentState!.validate()) return;
@@ -108,9 +116,10 @@ Future<void> _pickImage() async {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                context.go('/home');
+                context.go('/my-books');
               },
-              child: const Text('OK', style: TextStyle(color: AppColors.secondary)),
+              child: const Text('OK',
+                  style: TextStyle(color: AppColors.secondary)),
             ),
             TextButton(
               onPressed: () {
@@ -122,7 +131,8 @@ Future<void> _pickImage() async {
                   _selectedGenre = null;
                 });
               },
-              child: const Text('Add Another', style: TextStyle(color: AppColors.secondary)),
+              child: const Text('Add Another',
+                  style: TextStyle(color: AppColors.secondary)),
             ),
           ],
         ),
