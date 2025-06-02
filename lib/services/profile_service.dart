@@ -9,11 +9,11 @@ class ProfileService {
   final _storage = FirebaseStorage.instance;
 
   /// Ensure the /users/{uid} doc exists after first sign-in
-  Future<void> createIfMissing(User user) async {
+  Future<void> createIfMissing(User user, {String? fullName}) async {
     final doc = _db.collection('users').doc(user.uid);
     if (!(await doc.get()).exists) {
       await doc.set({
-        'displayName': user.displayName ?? '',
+        'displayName': fullName ?? user.displayName ?? '',
         'email': user.email,
         'location': '',
         'bio': '',

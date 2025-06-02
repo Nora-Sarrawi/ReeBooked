@@ -6,15 +6,19 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   /// Sign Up with Email and Password
-  Future<User?> signUpWithEmail(String email, String password) async {
+  Future<User?> signUpWithEmail(
+      String email, String password, String fullName) async {
     try {
       final result = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
       if (result.user != null) {
-        // create /users/{uid} profile doc on first sign-up
-        await ProfileService().createIfMissing(result.user!);
+        // Update the user's display name
+        await result.user!.updateDisplayName(fullName);
+        // create /users/{uid} profile doc on first sign-up with full name
+        await ProfileService()
+            .createIfMissing(result.user!, fullName: fullName);
       }
       return result.user;
     } on FirebaseAuthException catch (e) {

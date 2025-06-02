@@ -105,6 +105,12 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       );
       return;
     }
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your full name')),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -112,6 +118,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       await AuthService().signUpWithEmail(
         _emailController.text.trim(),
         _passwordController.text.trim(),
+        _nameController.text.trim(),
       );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Account created! Please sign in.")),

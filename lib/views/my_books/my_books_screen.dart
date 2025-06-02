@@ -39,28 +39,21 @@ class MyBooksScreen extends StatefulWidget {
 }
 
 class _MyBooksScreenState extends State<MyBooksScreen> {
-  late Future<List<Book>> booksFuture;
   String _searchQuery = '';
   List<Book> _allBooks = [];
 
-  @override
-  void initState() {
-    super.initState();
-    booksFuture = fetchBooksFromFirebase();
-  }
-
-  Future<List<Book>> fetchBooksFromFirebase() async {
+  Stream<List<Book>> getBooksStream() {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return [];
+    if (user == null) return Stream.value([]);
 
-    final querySnapshot = await FirebaseFirestore.instance
+    return FirebaseFirestore.instance
         .collection('books')
         .where('ownerId', isEqualTo: user.uid)
-        .get();
-
-    _allBooks =
-        querySnapshot.docs.map((doc) => Book.fromDocument(doc)).toList();
-    return _allBooks;
+        .snapshots()
+        .map((snapshot) {
+      _allBooks = snapshot.docs.map((doc) => Book.fromDocument(doc)).toList();
+      return _getFilteredBooks(_allBooks);
+    });
   }
 
   List<Book> _getFilteredBooks(List<Book> books) {
@@ -145,7 +138,7 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
 
       // Refresh the books list
       setState(() {
-        booksFuture = fetchBooksFromFirebase();
+        // This will automatically trigger the stream to emit a new value
       });
 
       if (mounted) {
@@ -290,62 +283,59 @@ class _MyBooksScreenState extends State<MyBooksScreen> {
               ),
               const SizedBox(height: 20),
               Expanded(
-                child: FutureBuilder<List<Book>>(
-                  future: booksFuture,
+                child: StreamBuilder<List<Book>>(
+                  stream: getBooksStream(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
                     } else if (snapshot.hasError) {
                       return Center(child: Text('Error: ${snapshot.error}'));
-                    } else if (snapshot.hasData) {
-                      final filteredBooks = _getFilteredBooks(snapshot.data!);
-                      if (filteredBooks.isEmpty) {
-                        return Center(
-                          child: Text(
-                            _searchQuery.isEmpty
-                                ? "You don't have any books yet."
-                                : "No books found matching '${_searchQuery}'",
-                            style: const TextStyle(
-                              color: Color(0xFF562B56),
-                              fontSize: 18,
-                              fontFamily: 'Outfit',
-                              fontWeight: FontWeight.w500,
-                            ),
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return Center(
+                        child: Text(
+                          _searchQuery.isEmpty
+                              ? "You don't have any books yet."
+                              : "No books found matching '${_searchQuery}'",
+                          style: const TextStyle(
+                            color: Color(0xFF562B56),
+                            fontSize: 18,
+                            fontFamily: 'Outfit',
+                            fontWeight: FontWeight.w500,
                           ),
-                        );
-                      }
-                      return GridView.builder(
-                        itemCount: filteredBooks.length,
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 0.75,
                         ),
-                        itemBuilder: (context, index) {
-                          final book = filteredBooks[index];
-                          return _BookCard(
-                            book: book,
-                            onPressed: () {
-                              context.pushNamed(
-                                'bookDetails',
-                                pathParameters: {'bookId': book.id},
-                              );
-                            },
-                            onDelete: () async {
-                              final shouldDelete =
-                                  await showDeleteConfirmationDialog(book);
-                              if (shouldDelete) {
-                                await deleteBook(book.id);
-                              }
-                            },
-                          );
-                        },
                       );
-                    } else {
-                      return const Center(child: Text('No books found.'));
                     }
+
+                    final filteredBooks = snapshot.data!;
+                    return GridView.builder(
+                      itemCount: filteredBooks.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        childAspectRatio: 0.75,
+                      ),
+                      itemBuilder: (context, index) {
+                        final book = filteredBooks[index];
+                        return _BookCard(
+                          book: book,
+                          onPressed: () {
+                            context.pushNamed(
+                              'bookDetails',
+                              pathParameters: {'bookId': book.id},
+                            );
+                          },
+                          onDelete: () async {
+                            final shouldDelete =
+                                await showDeleteConfirmationDialog(book);
+                            if (shouldDelete) {
+                              await deleteBook(book.id);
+                            }
+                          },
+                        );
+                      },
+                    );
                   },
                 ),
               ),
