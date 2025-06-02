@@ -3,6 +3,7 @@ import 'package:rebooked_app/core/theme.dart';
 import 'package:rebooked_app/widgets/primary_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 
 class Book {
   final String id;
@@ -205,7 +206,8 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
                   text: 'Thanks',
                   onPressed: () {
                     Navigator.of(context).pop(); // close dialog
-                    Navigator.of(context).pop(); // go back
+                    context
+                        .go('/book/$targetBookId'); // navigate to book details
                   },
                 ),
               ],
@@ -431,7 +433,7 @@ class _ConfirmSwapPageState extends State<ConfirmSwapPage> {
                             height: screenHeight * 0.06,
                             child: OutlinedButton(
                               onPressed: () {
-                                Navigator.of(context).pop();
+                                context.go('/book/$targetBookId');
                               },
                               style: OutlinedButton.styleFrom(
                                 backgroundColor: AppColors.gray,
